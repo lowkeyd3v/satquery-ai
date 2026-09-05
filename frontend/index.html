@@ -13,16 +13,15 @@
   <!-- ================= TOP BAR ================= -->
   <header class="topbar">
     <div class="brand">
-      <span class="brand-icon">🛰️</span>
+      <div class="brand-icon">🛰️</div>
       <div class="brand-text">
-        <h1>SatQuery <span class="accent">AI</span></h1>
-        <p>SIH26167 &middot; Vision-Language Geospatial Assistant &middot; ISRO</p>
+        <h1>SatQuery <span class="accent">AI</span><span class="brand-tag">ISRO</span></h1>
       </div>
     </div>
     <div class="topbar-actions">
       <div class="status-indicator" id="statusIndicator">
         <span class="status-dot" id="statusDot"></span>
-        <span id="statusText">Connecting to inference engine…</span>
+        <span id="statusText">Connecting…</span>
       </div>
     </div>
   </header>
@@ -31,10 +30,10 @@
   <div class="layout">
 
     <!-- ============ SIDE NAVIGATION / CONTROL BAR ============ -->
-    <aside class="sidebar glass">
+    <aside class="sidebar">
       <div class="sidebar-section">
         <div class="section-header">
-          <h2>Query Console</h2>
+          <span class="section-label">Query Console</span>
           <span class="shortcut-badge">Enter ↵</span>
         </div>
         <form id="queryForm" autocomplete="off">
@@ -69,7 +68,7 @@
       </div>
 
       <div class="sidebar-section">
-        <h2>Preset Scenarios</h2>
+        <span class="section-label">Preset Scenarios</span>
         <div class="preset-buttons" id="presetButtons">
           <!-- Populated dynamically by app.js -->
           <button class="preset-btn skeleton" disabled>Loading…</button>
@@ -77,10 +76,10 @@
       </div>
 
       <div class="sidebar-section">
-        <h2>Live Spatial Intelligence</h2>
+        <span class="section-label">Live Telemetry</span>
         <div class="metrics-panel" id="metricsPanel">
           <div class="metric-row">
-            <span class="metric-label">Detected Label</span>
+            <span class="metric-label">Class</span>
             <span class="metric-value" id="metricLabel">—</span>
           </div>
           <div class="metric-row">
@@ -91,15 +90,15 @@
             <div class="confidence-bar-fill" id="confidenceBarFill"></div>
           </div>
           <div class="metric-row">
-            <span class="metric-label">Area Coverage</span>
+            <span class="metric-label">Area</span>
             <span class="metric-value" id="metricArea">—</span>
           </div>
           <div class="metric-row">
-            <span class="metric-label">Sensor Source</span>
+            <span class="metric-label">Sensor</span>
             <span class="metric-value sensor-tag" id="metricSensor">—</span>
           </div>
           <div class="metric-row">
-            <span class="metric-label">Inference Mode</span>
+            <span class="metric-label">Mode</span>
             <span class="metric-value" id="metricMode">—</span>
           </div>
           <div class="metric-row">
@@ -107,14 +106,14 @@
             <span class="metric-value" id="metricLatency">—</span>
           </div>
           <div class="metric-row">
-            <span class="metric-label">Spatial Status</span>
-            <span class="metric-value" id="metricStatus">Idle</span>
+            <span class="metric-label">Status</span>
+            <span class="metric-value" id="metricStatus">IDLE</span>
           </div>
         </div>
       </div>
 
       <div class="sidebar-section history-section">
-        <h2>Query History</h2>
+        <span class="section-label">Query History</span>
         <ul class="history-log" id="historyLog">
           <li class="history-empty">No queries submitted yet.</li>
         </ul>
