@@ -370,6 +370,8 @@ html, body {
 .metric-value {
   font-weight: 600;
   color: var(--text-primary);
+}
+
 .metric-value.highlight {
   color: var(--accent-brand);
   font-weight: 700;
