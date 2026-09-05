@@ -1,0 +1,334 @@
+/* ==========================================================================
+   SatQuery AI — Frontend Application Logic
+   SIH26167 | ISRO
+   ==========================================================================
+   Manages:
+     - Leaflet map initialization and satellite-style tile layer
+     - Fetching preset scenarios and rendering quick-action buttons
+     - Submitting free-text queries to the FastAPI backend
+     - Rendering / animating GeoJSON polygons on the map
+     - Updating the live metrics panel and query history log
+   ========================================================================== */
+
+(() => {
+  "use strict";
+
+  // API base is same-origin since FastAPI serves this file too.
+  const API_BASE = window.location.origin;
+  const ENDPOINTS = {
+    scenarios: `${API_BASE}/api/v1/scenarios`,
+    query: `${API_BASE}/api/v1/query`,
+    health: `${API_BASE}/api/v1/health`,
+  };
+
+  const SCENARIO_COLORS = {
+    flood: "#ff1744",
+    urban: "#ff9100",
+    water: "#00e676",
+    unknown: "#00b0ff",
+  };
+
+  // ------------------------------------------------------------------
+  // DOM references
+  // ------------------------------------------------------------------
+  const el = {
+    statusDot: document.getElementById("statusDot"),
+    statusText: document.getElementById("statusText"),
+    queryForm: document.getElementById("queryForm"),
+    queryInput: document.getElementById("queryInput"),
+    submitBtn: document.getElementById("submitBtn"),
+    presetButtons: document.getElementById("presetButtons"),
+    metricLabel: document.getElementById("metricLabel"),
+    metricConfidence: document.getElementById("metricConfidence"),
+    confidenceBarFill: document.getElementById("confidenceBarFill"),
+    metricArea: document.getElementById("metricArea"),
+    metricMode: document.getElementById("metricMode"),
+    metricLatency: document.getElementById("metricLatency"),
+    metricStatus: document.getElementById("metricStatus"),
+    historyLog: document.getElementById("historyLog"),
+    toast: document.getElementById("toast"),
+  };
+
+  // ------------------------------------------------------------------
+  // Map setup
+  // ------------------------------------------------------------------
+  const map = L.map("map", {
+    zoomControl: false,
+    attributionControl: true,
+  }).setView([22.9734, 78.6569], 5); // Geographic center of India
+
+  L.control.zoom({ position: "bottomright" }).addTo(map);
+
+  // Satellite-style tile layer. Uses Esri World Imagery (free, no API key)
+  // as the satellite basemap; falls back conceptually to OSM tile format.
+  const satelliteLayer = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    {
+      attribution:
+        "Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community",
+      maxZoom: 19,
+    }
+  );
+  satelliteLayer.addTo(map);
+
+  // Optional label overlay (OSM-based reference layer) for place names.
+  const referenceLayer = L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png",
+    {
+      attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
+      subdomains: "abcd",
+      maxZoom: 19,
+      opacity: 0.85,
+    }
+  );
+  referenceLayer.addTo(map);
+
+  let activeGeoJsonLayer = null;
+
+  // ------------------------------------------------------------------
+  // Utility: status indicator
+  // ------------------------------------------------------------------
+  function setStatus(state, text) {
+    el.statusDot.className = `status-dot ${state}`;
+    el.statusText.textContent = text;
+  }
+
+  // ------------------------------------------------------------------
+  // Utility: toast notifications
+  // ------------------------------------------------------------------
+  let toastTimer = null;
+  function showToast(message, isError = false) {
+    el.toast.textContent = message;
+    el.toast.classList.toggle("error", isError);
+    el.toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      el.toast.classList.remove("show");
+    }, 3200);
+  }
+
+  // ------------------------------------------------------------------
+  // Fetch and render preset scenario buttons
+  // ------------------------------------------------------------------
+  async function loadPresets() {
+    try {
+      const res = await fetch(ENDPOINTS.scenarios);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      renderPresetButtons(data.scenarios || []);
+      setStatus("online", "Inference engine connected");
+    } catch (err) {
+      console.error("Failed to load presets:", err);
+      setStatus("error", "Backend unreachable — check server");
+      el.presetButtons.innerHTML =
+        '<p class="history-empty">Could not load presets. Is the backend running?</p>';
+    }
+  }
+
+  function renderPresetButtons(scenarios) {
+    el.presetButtons.innerHTML = "";
+    scenarios.forEach((scenario) => {
+      const btn = document.createElement("button");
+      btn.className = "preset-btn";
+      btn.dataset.scenarioId = scenario.id;
+      btn.innerHTML = `
+        <span class="dot" style="background:${scenario.color}"></span>
+        <span>${scenario.name}</span>
+      `;
+      btn.addEventListener("click", () => {
+        setActivePresetButton(scenario.id);
+        el.queryInput.value = scenario.sample_query;
+        runQuery({ query: scenario.sample_query, scenario_id: scenario.id });
+      });
+      el.presetButtons.appendChild(btn);
+    });
+  }
+
+  function setActivePresetButton(scenarioId) {
+    document.querySelectorAll(".preset-btn").forEach((b) => {
+      b.classList.toggle("active", b.dataset.scenarioId === scenarioId);
+    });
+  }
+
+  // ------------------------------------------------------------------
+  // Core: submit a query to the backend and render the response
+  // ------------------------------------------------------------------
+  async function runQuery({ query, scenario_id = null }) {
+    if (!query || !query.trim()) {
+      showToast("Please enter a query before running analysis.", true);
+      return;
+    }
+
+    setBusy(true);
+    setStatus("busy", "Running spatial inference…");
+    el.metricStatus.textContent = "Processing…";
+
+    try {
+      const res = await fetch(ENDPOINTS.query, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: query.trim(),
+          scenario_id: scenario_id,
+        }),
+      });
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.detail || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      handleQueryResponse(query, data);
+      setStatus("online", "Inference engine connected");
+    } catch (err) {
+      console.error("Query failed:", err);
+      showToast(`Query failed: ${err.message}`, true);
+      setStatus("error", "Last query failed — see toast");
+      el.metricStatus.textContent = "Error";
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function setBusy(isBusy) {
+    el.submitBtn.disabled = isBusy;
+    el.submitBtn.querySelector("span").textContent = isBusy
+      ? "Analyzing…"
+      : "Run Analysis";
+  }
+
+  // ------------------------------------------------------------------
+  // Handle a successful query response: render map + metrics + history
+  // ------------------------------------------------------------------
+  function handleQueryResponse(originalQuery, data) {
+    renderGeoJsonLayer(data.geojson, data.scenario_id);
+    updateMetricsPanel(data);
+    addHistoryEntry(originalQuery, data);
+    showToast(
+      `Detected "${data.matched_label}" (${Math.round(
+        data.query_confidence * 100
+      )}% confidence) in ${data.processing_time_ms}ms — ${data.mode.toUpperCase()} mode`
+    );
+  }
+
+  function renderGeoJsonLayer(geojson, scenarioId) {
+    if (activeGeoJsonLayer) {
+      map.removeLayer(activeGeoJsonLayer);
+      activeGeoJsonLayer = null;
+    }
+
+    const baseColor = SCENARIO_COLORS[scenarioId] || SCENARIO_COLORS.unknown;
+
+    activeGeoJsonLayer = L.geoJSON(geojson, {
+      style: (feature) => ({
+        color: feature.properties.color || baseColor,
+        weight: 2,
+        fillColor: feature.properties.color || baseColor,
+        fillOpacity: 0.28,
+        className: "geojson-layer-enter",
+      }),
+      onEachFeature: (feature, layer) => {
+        const p = feature.properties || {};
+        const confidencePct = p.confidence
+          ? Math.round(p.confidence * 100)
+          : "—";
+        layer.bindPopup(`
+          <div class="popup-title">${p.label || "Region"}</div>
+          <div class="popup-row"><strong>Confidence:</strong> ${confidencePct}%</div>
+          <div class="popup-row"><strong>Area:</strong> ${p.area_sqkm ?? "—"} km²</div>
+          <div class="popup-row">${p.description || ""}</div>
+        `);
+
+        layer.on("mouseover", () => layer.setStyle({ fillOpacity: 0.5 }));
+        layer.on("mouseout", () => layer.setStyle({ fillOpacity: 0.28 }));
+      },
+    }).addTo(map);
+
+    // Fly to the bounding box of the returned features, if any exist.
+    const layerBounds = activeGeoJsonLayer.getBounds();
+    if (layerBounds.isValid()) {
+      map.flyToBounds(layerBounds, { padding: [60, 60], duration: 1.1 });
+    } else if (geojson.metadata && geojson.metadata.center) {
+      map.flyTo(
+        [geojson.metadata.center[0], geojson.metadata.center[1]],
+        geojson.metadata.zoom || 7,
+        { duration: 1.1 }
+      );
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // Metrics panel
+  // ------------------------------------------------------------------
+  function updateMetricsPanel(data) {
+    const totalArea = (data.geojson.features || []).reduce(
+      (sum, f) => sum + (f.properties.area_sqkm || 0),
+      0
+    );
+
+    el.metricLabel.textContent = capitalize(data.matched_label);
+    el.metricConfidence.textContent = `${Math.round(
+      data.query_confidence * 100
+    )}%`;
+    el.confidenceBarFill.style.width = `${Math.round(
+      data.query_confidence * 100
+    )}%`;
+    el.metricArea.textContent = `${totalArea.toFixed(1)} km²`;
+    el.metricMode.textContent = data.mode.toUpperCase();
+    el.metricLatency.textContent = `${data.processing_time_ms} ms`;
+    el.metricStatus.textContent = `${
+      (data.geojson.features || []).length
+    } region(s) detected`;
+  }
+
+  function capitalize(str) {
+    if (!str) return "—";
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  // ------------------------------------------------------------------
+  // Query history log
+  // ------------------------------------------------------------------
+  function addHistoryEntry(query, data) {
+    const emptyPlaceholder = el.historyLog.querySelector(".history-empty");
+    if (emptyPlaceholder) emptyPlaceholder.remove();
+
+    const item = document.createElement("li");
+    item.className = "history-item";
+    item.style.borderLeftColor =
+      SCENARIO_COLORS[data.scenario_id] || SCENARIO_COLORS.unknown;
+
+    const time = new Date().toLocaleTimeString();
+    item.innerHTML = `
+      <span class="h-query">${escapeHtml(query)}</span>
+      <span class="h-meta">${time} &middot; ${capitalize(
+      data.matched_label
+    )} &middot; ${Math.round(data.query_confidence * 100)}% &middot; ${
+      data.mode
+    }</span>
+    `;
+    el.historyLog.insertBefore(item, el.historyLog.firstChild);
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ------------------------------------------------------------------
+  // Event bindings
+  // ------------------------------------------------------------------
+  el.queryForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    setActivePresetButton(null);
+    runQuery({ query: el.queryInput.value });
+  });
+
+  // ------------------------------------------------------------------
+  // Initialization
+  // ------------------------------------------------------------------
+  setStatus("busy", "Connecting to inference engine…");
+  loadPresets();
+})();

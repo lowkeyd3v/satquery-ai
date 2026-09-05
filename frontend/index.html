@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SatQuery AI | SIH26167 — ISRO</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+
+  <!-- ================= TOP BAR ================= -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-icon">🛰️</span>
+      <div class="brand-text">
+        <h1>SatQuery <span class="accent">AI</span></h1>
+        <p>SIH26167 &middot; Vision-Language Assistant for Remote Sensing &middot; ISRO</p>
+      </div>
+    </div>
+    <div class="status-indicator" id="statusIndicator">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Connecting to inference engine…</span>
+    </div>
+  </header>
+
+  <!-- ================= MAIN LAYOUT ================= -->
+  <div class="layout">
+
+    <!-- ============ SIDE NAVIGATION / CONTROL BAR ============ -->
+    <aside class="sidebar glass">
+      <div class="sidebar-section">
+        <h2>Query Console</h2>
+        <form id="queryForm" autocomplete="off">
+          <textarea
+            id="queryInput"
+            placeholder="e.g. Highlight flooded regions in this tile…"
+            rows="3"
+            required
+          ></textarea>
+          <button type="submit" class="btn primary" id="submitBtn">
+            <span>Run Analysis</span>
+          </button>
+        </form>
+      </div>
+
+      <div class="sidebar-section">
+        <h2>Preset Scenarios</h2>
+        <div class="preset-buttons" id="presetButtons">
+          <!-- Populated dynamically by app.js -->
+          <button class="preset-btn skeleton" disabled>Loading…</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h2>Live Metrics</h2>
+        <div class="metrics-panel" id="metricsPanel">
+          <div class="metric-row">
+            <span class="metric-label">Detected Label</span>
+            <span class="metric-value" id="metricLabel">—</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Confidence</span>
+            <span class="metric-value" id="metricConfidence">—</span>
+          </div>
+          <div class="confidence-bar-track">
+            <div class="confidence-bar-fill" id="confidenceBarFill"></div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Area Coverage</span>
+            <span class="metric-value" id="metricArea">—</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Inference Mode</span>
+            <span class="metric-value" id="metricMode">—</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Latency</span>
+            <span class="metric-value" id="metricLatency">—</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Spatial Status</span>
+            <span class="metric-value" id="metricStatus">Idle</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section history-section">
+        <h2>Query History</h2>
+        <ul class="history-log" id="historyLog">
+          <li class="history-empty">No queries submitted yet.</li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- ============ MAP CONTAINER ============ -->
+    <main class="map-wrapper">
+      <div id="map"></div>
+
+      <div class="legend glass">
+        <div class="legend-item">
+          <span class="legend-swatch" style="background:#ff1744"></span> Flooded Zone
+        </div>
+        <div class="legend-item">
+          <span class="legend-swatch" style="background:#ff9100"></span> Urban Expansion
+        </div>
+        <div class="legend-item">
+          <span class="legend-swatch" style="background:#00e676"></span> Water Body
+        </div>
+      </div>
+
+      <div class="toast" id="toast"></div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

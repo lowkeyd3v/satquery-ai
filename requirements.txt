@@ -1,0 +1,27 @@
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+python-multipart==0.0.9
+pydantic==2.7.4
+
+# Geospatial stack (unpinned -- lets pip pick a version with a prebuilt
+# wheel for your Python version; pinning to old versions breaks on
+# newer Python like 3.13 since they only ship source distributions)
+rasterio>=1.3.11
+geojson>=3.1.0
+shapely>=2.0.4
+pyproj>=3.6.1
+numpy>=1.26.4
+pillow>=10.3.0
+
+# Vision-Language / AI inference stack (optional real-mode -- only needed
+# if you set SATQUERY_REAL_MODE=1; safe to skip entirely for the demo)
+torch>=2.4.0
+torchvision>=0.19.0
+transformers>=4.44.0
+open-clip-torch>=2.24.0
+huggingface-hub>=0.24.0
+accelerate>=0.31.0
+
+# Utilities
+python-dotenv==1.0.1
+requests==2.32.3

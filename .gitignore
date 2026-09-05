@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Environment variables / secrets
+.env
+.env.local
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Model weights / large downloads (if real-mode is ever tested locally)
+*.pt
+*.pth
+*.bin
+*.safetensors
+models/
+weights/
+
+# Logs
+*.log
+
+# Build artifacts
+dist/
+build/
+*.egg
