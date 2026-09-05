@@ -131,13 +131,15 @@ def submit_query(request: QueryRequest):
 
     if request.scenario_id:
         # Explicit scenario override (used by the preset buttons in the UI)
-        from mock_data import get_scenario_geojson
+        try:
+            from backend.mock_data import get_scenario_geojson, SCENARIO_REGISTRY
+        except ImportError:
+            from mock_data import get_scenario_geojson, SCENARIO_REGISTRY
 
-        valid_ids = {"flood", "urban", "water"}
-        if request.scenario_id not in valid_ids:
+        if request.scenario_id not in SCENARIO_REGISTRY:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid scenario_id. Must be one of {sorted(valid_ids)}.",
+                detail=f"Invalid scenario_id. Must be one of {sorted(SCENARIO_REGISTRY.keys())}.",
             )
 
         import time
@@ -151,7 +153,7 @@ def submit_query(request: QueryRequest):
             mode="mock",
             scenario_id=request.scenario_id,
             matched_label=request.scenario_id,
-            query_confidence=0.95,
+            query_confidence=0.96,
             processing_time_ms=elapsed_ms,
             message=f"Preset scenario '{request.scenario_id}' loaded directly.",
             geojson=geojson,

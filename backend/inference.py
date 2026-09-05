@@ -36,7 +36,10 @@ import logging
 from dataclasses import dataclass, field
 from typing import Optional
 
-from mock_data import get_scenario_geojson, list_presets
+try:
+    from backend.mock_data import get_scenario_geojson, list_presets, SCENARIO_REGISTRY
+except ImportError:
+    from mock_data import get_scenario_geojson, list_presets, SCENARIO_REGISTRY
 
 logger = logging.getLogger("satquery.inference")
 logging.basicConfig(level=logging.INFO)
@@ -50,15 +53,32 @@ logging.basicConfig(level=logging.INFO)
 SCENARIO_KEYWORDS = {
     "flood": [
         "flood", "flooded", "flooding", "inundat", "waterlog", "overflow",
-        "submerg", "deluge", "monsoon damage", "breach",
+        "submerg", "deluge", "monsoon damage", "breach", "embankment",
+        "river burst", "tsunami", "water level rise", "assam", "brahmaputra",
+        "majuli", "dibrugarh", "disaster",
     ],
     "urban": [
         "urban", "sprawl", "expansion", "built-up", "built up", "construction",
-        "city growth", "development", "infrastructure", "settlement",
+        "city growth", "development", "infrastructure", "settlement", "building",
+        "buildings", "concrete", "residential", "commercial", "housing",
+        "bengaluru", "bangalore", "whitefield", "electronic city", "devanahalli",
+        "encroachment", "township", "metropolitan",
     ],
     "water": [
-        "water body", "water bodies", "lake", "lagoon", "river", "wetland",
-        "reservoir", "pond", "coastline", "water spread",
+        "water body", "water bodies", "lake", "lakes", "lagoon", "river",
+        "rivers", "wetland", "wetlands", "reservoir", "reservoirs", "pond",
+        "ponds", "coastline", "water spread", "water", "watershed", "estuary",
+        "chilika", "nalabana", "satapada", "hydrology", "aquatic", "salinity",
+    ],
+    "fire": [
+        "fire", "wildfire", "forest fire", "burn", "burn scar", "char",
+        "thermal", "smoke", "hotspot", "flame", "blaze", "similipal",
+        "deforestation", "canopy loss", "combustion", "heat anomaly",
+    ],
+    "agriculture": [
+        "agriculture", "crop", "crops", "drought", "moisture", "vegetation",
+        "ndvi", "farm", "farming", "paddy", "cotton", "soybean", "vidarbha",
+        "aridity", "soil moisture", "stress", "irrigation", "dryland",
     ],
 }
 

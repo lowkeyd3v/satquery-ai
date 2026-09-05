@@ -154,13 +154,29 @@ html, body {
   border-radius: 3px;
 }
 
+.sidebar-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 .sidebar-section h2 {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--text-secondary);
-  margin: 0 0 10px;
+  margin: 0;
   font-weight: 600;
+}
+
+.shortcut-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--bg-panel-alt);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
 }
 
 /* Query form */
@@ -173,9 +189,10 @@ html, body {
   border-radius: var(--radius-md);
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12.5px;
   padding: 10px 12px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  line-height: 1.4;
   transition: border-color 0.2s ease;
 }
 
@@ -184,15 +201,46 @@ html, body {
   border-color: var(--accent-brand);
 }
 
+/* Quick prompt chips */
+.quick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.chip {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.chip:hover {
+  background: rgba(0, 176, 255, 0.15);
+  border-color: var(--accent-brand);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
 .btn {
   width: 100%;
   border: none;
   border-radius: var(--radius-md);
-  padding: 11px 14px;
+  padding: 10px 14px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, background 0.15s ease;
 }
 
 .btn.primary {
@@ -212,6 +260,26 @@ html, body {
   box-shadow: none;
 }
 
+.action-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.btn.secondary {
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  padding: 8px 10px;
+}
+
+.btn.secondary:hover {
+  background: #27272d;
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
 /* Preset buttons */
 .preset-buttons {
   display: flex;
@@ -222,14 +290,12 @@ html, body {
 .preset-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   background: var(--bg-panel-alt);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   color: var(--text-primary);
-  padding: 10px 12px;
-  font-size: 13px;
-  font-weight: 500;
+  padding: 9px 12px;
   text-align: left;
   cursor: pointer;
   transition: border-color 0.2s ease, transform 0.15s ease, background 0.2s ease;
@@ -239,6 +305,27 @@ html, body {
   border-color: var(--accent-brand);
   transform: translateX(2px);
   background: #24242a;
+}
+
+.preset-btn-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.preset-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.preset-desc {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .preset-btn .dot {
@@ -283,7 +370,19 @@ html, body {
 .metric-value {
   font-weight: 600;
   color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
+.metric-value.highlight {
+  color: var(--accent-brand);
+  font-weight: 700;
+}
+
+.metric-value.sensor-tag {
+  font-size: 11px;
+  color: #c0c0d0;
+  max-width: 170px;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .confidence-bar-track {
@@ -337,6 +436,13 @@ html, body {
   padding: 8px 10px;
   font-size: 12px;
   color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.history-item:hover {
+  background: #25252b;
+  transform: translateX(2px);
 }
 
 .history-item .h-query {
@@ -381,46 +487,117 @@ html, body {
 }
 
 .leaflet-popup-content-wrapper {
-  background: var(--bg-panel);
+  background: #17171b;
   color: var(--text-primary);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+  padding: 0;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  line-height: 1.4;
 }
 
 .leaflet-popup-tip {
-  background: var(--bg-panel);
+  background: #17171b;
+}
+
+.popup-container {
+  padding: 12px 14px;
+}
+
+.popup-header {
+  padding-left: 8px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
 
 .popup-title {
   font-weight: 700;
   font-size: 13px;
-  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.popup-badge {
+  font-size: 9.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.popup-body {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .popup-row {
-  font-size: 11.5px;
+  margin: 1px 0;
+}
+
+.popup-row strong {
+  color: #d0d0d8;
+}
+
+.popup-desc {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11px;
   color: var(--text-secondary);
-  margin: 2px 0;
+  line-height: 1.35;
+}
+
+.popup-action {
+  margin-top: 5px;
+  font-size: 11px;
+  color: #00e5ff;
+  background: rgba(0, 229, 255, 0.08);
+  padding: 5px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 229, 255, 0.2);
 }
 
 /* Legend */
 .legend {
   position: absolute;
-  bottom: 20px;
-  left: 20px;
+  bottom: 24px;
+  left: 24px;
   border-radius: var(--radius-md);
-  padding: 12px 14px;
+  padding: 12px 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
   z-index: 500;
 }
 
+.legend-header {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .legend-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-secondary);
 }
 

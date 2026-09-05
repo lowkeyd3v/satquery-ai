@@ -16,12 +16,14 @@
       <span class="brand-icon">🛰️</span>
       <div class="brand-text">
         <h1>SatQuery <span class="accent">AI</span></h1>
-        <p>SIH26167 &middot; Vision-Language Assistant for Remote Sensing &middot; ISRO</p>
+        <p>SIH26167 &middot; Vision-Language Geospatial Assistant &middot; ISRO</p>
       </div>
     </div>
-    <div class="status-indicator" id="statusIndicator">
-      <span class="status-dot" id="statusDot"></span>
-      <span id="statusText">Connecting to inference engine…</span>
+    <div class="topbar-actions">
+      <div class="status-indicator" id="statusIndicator">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Connecting to inference engine…</span>
+      </div>
     </div>
   </header>
 
@@ -31,18 +33,39 @@
     <!-- ============ SIDE NAVIGATION / CONTROL BAR ============ -->
     <aside class="sidebar glass">
       <div class="sidebar-section">
-        <h2>Query Console</h2>
+        <div class="section-header">
+          <h2>Query Console</h2>
+          <span class="shortcut-badge">Enter ↵</span>
+        </div>
         <form id="queryForm" autocomplete="off">
           <textarea
             id="queryInput"
-            placeholder="e.g. Highlight flooded regions in this tile…"
+            placeholder="Type a natural language request, e.g. 'Highlight flooded regions along the river'…"
             rows="3"
             required
           ></textarea>
+
+          <div class="quick-chips" id="quickChips" title="Click to auto-fill and run">
+            <span class="chip" data-query="Highlight flooded regions along the Brahmaputra floodplain">🌊 Floods</span>
+            <span class="chip" data-query="Show urban sprawl and built-up construction in Bengaluru">🏙️ Urban</span>
+            <span class="chip" data-query="Segment all major water bodies and wetland spread in Chilika">🏞️ Water</span>
+            <span class="chip" data-query="Detect active forest fire hotspots and burn scars in Similipal">🔥 Fire</span>
+            <span class="chip" data-query="Analyze agricultural crop drought stress in Vidarbha">🌾 Drought</span>
+          </div>
+
           <button type="submit" class="btn primary" id="submitBtn">
             <span>Run Analysis</span>
           </button>
         </form>
+
+        <div class="action-bar">
+          <button type="button" class="btn secondary action-btn" id="exportGeoJsonBtn" title="Download current results as standard GeoJSON">
+            <span>📥 Export GeoJSON</span>
+          </button>
+          <button type="button" class="btn secondary action-btn" id="resetMapBtn" title="Reset map to Pan-India view">
+            <span>🔄 Reset View</span>
+          </button>
+        </div>
       </div>
 
       <div class="sidebar-section">
@@ -54,7 +77,7 @@
       </div>
 
       <div class="sidebar-section">
-        <h2>Live Metrics</h2>
+        <h2>Live Spatial Intelligence</h2>
         <div class="metrics-panel" id="metricsPanel">
           <div class="metric-row">
             <span class="metric-label">Detected Label</span>
@@ -62,7 +85,7 @@
           </div>
           <div class="metric-row">
             <span class="metric-label">Confidence</span>
-            <span class="metric-value" id="metricConfidence">—</span>
+            <span class="metric-value highlight" id="metricConfidence">—</span>
           </div>
           <div class="confidence-bar-track">
             <div class="confidence-bar-fill" id="confidenceBarFill"></div>
@@ -70,6 +93,10 @@
           <div class="metric-row">
             <span class="metric-label">Area Coverage</span>
             <span class="metric-value" id="metricArea">—</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Sensor Source</span>
+            <span class="metric-value sensor-tag" id="metricSensor">—</span>
           </div>
           <div class="metric-row">
             <span class="metric-label">Inference Mode</span>
@@ -99,14 +126,21 @@
       <div id="map"></div>
 
       <div class="legend glass">
+        <div class="legend-header">Geospatial Classes</div>
         <div class="legend-item">
-          <span class="legend-swatch" style="background:#ff1744"></span> Flooded Zone
+          <span class="legend-swatch" style="background:#ff1744"></span> Flooded Inundation
         </div>
         <div class="legend-item">
-          <span class="legend-swatch" style="background:#ff9100"></span> Urban Expansion
+          <span class="legend-swatch" style="background:#ff9100"></span> Urban Sprawl
         </div>
         <div class="legend-item">
-          <span class="legend-swatch" style="background:#00e676"></span> Water Body
+          <span class="legend-swatch" style="background:#00e676"></span> Water Body / Lagoon
+        </div>
+        <div class="legend-item">
+          <span class="legend-swatch" style="background:#e040fb"></span> Forest Fire / Burn Scar
+        </div>
+        <div class="legend-item">
+          <span class="legend-swatch" style="background:#ffd600"></span> Crop Drought Stress
         </div>
       </div>
 
