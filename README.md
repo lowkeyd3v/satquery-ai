@@ -99,36 +99,23 @@ SatQuery AI bridges the divide between raw Earth Observation (EO) satellite imag
 
 In full inference mode, pixel mask contours $(u, v)$ output by SAM 2 are mapped to geographic coordinates $(\text{lon}, \text{lat})$ using the raster's 6-parameter affine transformation matrix:
 
-$$
-\begin{bmatrix}
-X_{\text{geo}} \\
-Y_{\text{geo}} \\
-1
-\end{bmatrix}
-=
-\begin{bmatrix}
-a & b & c \\
-d & e & f \\
-0 & 0 & 1
-\end{bmatrix}
-\begin{bmatrix}
-u \\
-v \\
-1
-\end{bmatrix}
-$$
+```
+┌          ┐   ┌             ┐ ┌   ┐
+│  X_geo   │   │  a   b   c  │ │ u │
+│  Y_geo   │ = │  d   e   f  │ │ v │
+│    1     │   │  0   0   1  │ │ 1 │
+└          ┘   └             ┘ └   ┘
+```
 
-$$
-\begin{aligned}
-\text{Longitude } (X_{\text{geo}}) &= a \cdot u + b \cdot v + c \\
-\text{Latitude } (Y_{\text{geo}}) &= d \cdot u + e \cdot v + f
-\end{aligned}
-$$
+$$X_{\text{geo}} = a \cdot u + b \cdot v + c$$
+
+$$Y_{\text{geo}} = d \cdot u + e \cdot v + f$$
 
 Where:
 - $c, f$ = Top-left corner coordinates $(X_{\text{origin}}, Y_{\text{origin}})$
 - $a, e$ = Pixel width and height (Ground Sampling Distance / GSD)
-- $b, d$ = Rotation and shear coefficients (0 for standard north-up rasters)
+- $b, d$ = Rotation and shear coefficients ($0$ for standard north-up rasters)
+- $u, v$ = Mask pixel column and row indices
 - Coordinates are projected via `pyproj` into WGS84 (`EPSG:4326`) GeoJSON standard geometry.
 
 ---
