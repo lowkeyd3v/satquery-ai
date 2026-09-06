@@ -13,7 +13,6 @@
   <!-- ================= TOP BAR ================= -->
   <header class="topbar">
     <div class="brand">
-      <div class="brand-icon">🛰️</div>
       <div class="brand-text">
         <h1>SatQuery <span class="accent">AI</span><span class="brand-tag">ISRO</span></h1>
       </div>
@@ -124,22 +123,30 @@
     <main class="map-wrapper">
       <div id="map"></div>
 
-      <div class="legend glass">
-        <div class="legend-header">Geospatial Classes</div>
-        <div class="legend-item">
-          <span class="legend-swatch" style="background:#ff1744"></span> Flooded Inundation
-        </div>
-        <div class="legend-item">
-          <span class="legend-swatch" style="background:#ff9100"></span> Urban Sprawl
-        </div>
-        <div class="legend-item">
-          <span class="legend-swatch" style="background:#00e676"></span> Water Body / Lagoon
-        </div>
-        <div class="legend-item">
-          <span class="legend-swatch" style="background:#e040fb"></span> Forest Fire / Burn Scar
-        </div>
-        <div class="legend-item">
-          <span class="legend-swatch" style="background:#ffd600"></span> Crop Drought Stress
+      <!-- Temporal playback bar (shown after query) -->
+      <div class="temporal-bar" id="temporalBar">
+        <button class="temporal-play-btn" id="temporalPlayBtn" title="Play temporal sequence">▶</button>
+        <div class="temporal-track-wrap">
+          <div class="temporal-nodes">
+            <div class="temporal-node" data-step="0" id="tnode0">
+              <div class="tnode-dot"></div>
+              <span class="tnode-tag" id="ttag0">T+0</span>
+            </div>
+            <div class="temporal-line"><div class="temporal-line-fill" id="tline0"></div></div>
+            <div class="temporal-node" data-step="1" id="tnode1">
+              <div class="tnode-dot"></div>
+              <span class="tnode-tag" id="ttag1">T+4d</span>
+            </div>
+            <div class="temporal-line"><div class="temporal-line-fill" id="tline1"></div></div>
+            <div class="temporal-node" data-step="2" id="tnode2">
+              <div class="tnode-dot"></div>
+              <span class="tnode-tag" id="ttag2">T+8d</span>
+            </div>
+          </div>
+          <div class="temporal-info">
+            <span class="temporal-step-label" id="temporalStepLabel">—</span>
+            <span class="temporal-date" id="temporalDate">—</span>
+          </div>
         </div>
       </div>
 

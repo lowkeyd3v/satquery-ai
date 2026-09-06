@@ -36,6 +36,12 @@
   let lastQueryResult = null;
   let activeGeoJsonLayer = null;
 
+  // Temporal playback state
+  let temporalSnapshots = null;
+  let temporalCurrentStep = 0;
+  let temporalInterval = null;
+  let temporalPlaying = false;
+
   // ------------------------------------------------------------------
   // DOM references
   // ------------------------------------------------------------------
@@ -193,6 +199,7 @@
       const data = await res.json();
       lastQueryResult = data;
       handleQueryResponse(query, data);
+      fetchAndSetupTemporal(data.scenario_id);
       setStatus("online", "Inference engine online");
     } catch (err) {
       console.error("Query failed:", err);
@@ -391,8 +398,126 @@
     el.metricSensor.textContent = "—";
     el.metricMode.textContent = "—";
     el.metricLatency.textContent = "—";
-    el.metricStatus.textContent = "Idle";
+    el.metricStatus.textContent = "IDLE";
+    hideTemporalBar();
     showToast("Map view reset to Pan-India coverage.");
+  }
+
+  // ------------------------------------------------------------------
+  // Temporal playback
+  // ------------------------------------------------------------------
+  async function fetchAndSetupTemporal(scenarioId) {
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/temporal/${scenarioId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      temporalSnapshots = data.snapshots;
+      stopTemporalPlayback();
+      // Update node tags with real labels from API
+      temporalSnapshots.forEach((snap, i) => {
+        const tag = document.getElementById(`ttag${i}`);
+        if (tag) tag.textContent = snap.tag;
+        const node = document.getElementById(`tnode${i}`);
+        if (node) node.onclick = () => { stopTemporalPlayback(); goToTemporalStep(i); };
+      });
+      // Show at peak (step 2) — matches what was just rendered
+      goToTemporalStep(2);
+      showTemporalBar();
+    } catch (e) {
+      console.warn("Temporal data unavailable:", e);
+    }
+  }
+
+  function showTemporalBar() {
+    const bar = document.getElementById("temporalBar");
+    if (bar) bar.classList.add("visible");
+  }
+
+  function hideTemporalBar() {
+    const bar = document.getElementById("temporalBar");
+    if (bar) bar.classList.remove("visible");
+    stopTemporalPlayback();
+    temporalSnapshots = null;
+  }
+
+  function goToTemporalStep(step) {
+    if (!temporalSnapshots || step < 0 || step >= temporalSnapshots.length) return;
+    temporalCurrentStep = step;
+    const snap = temporalSnapshots[step];
+
+    // Swap map layer
+    if (activeGeoJsonLayer) { map.removeLayer(activeGeoJsonLayer); activeGeoJsonLayer = null; }
+    const baseColor = SCENARIO_COLORS[lastQueryResult?.scenario_id] || SCENARIO_COLORS.unknown;
+    activeGeoJsonLayer = L.geoJSON(snap.geojson, {
+      style: (feature) => ({
+        color: feature.properties.color || baseColor,
+        weight: 2.5,
+        fillColor: feature.properties.color || baseColor,
+        fillOpacity: 0.32,
+        className: "geojson-layer-enter",
+      }),
+      onEachFeature: (feature, layer) => {
+        const p = feature.properties || {};
+        const confidencePct = p.confidence ? Math.round(p.confidence * 100) : "—";
+        const popupHtml = `
+          <div class="popup-container">
+            <div class="popup-header" style="border-left:3px solid ${p.color || baseColor}">
+              <span class="popup-title">${escapeHtml(p.label || "Segmented Region")}</span>
+              ${p.severity ? `<span class="popup-badge">${escapeHtml(p.severity)}</span>` : ""}
+            </div>
+            <div class="popup-body">
+              <div class="popup-row"><strong>Confidence:</strong> ${confidencePct}%</div>
+              <div class="popup-row"><strong>Area:</strong> ${p.area_sqkm ?? "—"} km²</div>
+              ${p.sensor ? `<div class="popup-row"><strong>Sensor:</strong> ${escapeHtml(p.sensor)}</div>` : ""}
+              ${p.description ? `<div class="popup-desc">${escapeHtml(p.description)}</div>` : ""}
+              ${p.action ? `<div class="popup-action"><strong>Action:</strong> ${escapeHtml(p.action)}</div>` : ""}
+            </div>
+          </div>`;
+        layer.bindPopup(popupHtml, { maxWidth: 300 });
+        layer.on("mouseover", () => layer.setStyle({ fillOpacity: 0.55, weight: 3.5 }));
+        layer.on("mouseout",  () => layer.setStyle({ fillOpacity: 0.32, weight: 2.5 }));
+      },
+    }).addTo(map);
+
+    // Update node active states
+    for (let i = 0; i < 3; i++) {
+      document.getElementById(`tnode${i}`)?.classList.toggle("active", i <= step);
+    }
+    // Update connecting line fills
+    document.getElementById("tline0").style.width = step >= 1 ? "100%" : "0%";
+    document.getElementById("tline1").style.width = step >= 2 ? "100%" : "0%";
+
+    // Update info labels
+    document.getElementById("temporalStepLabel").textContent = snap.label;
+    document.getElementById("temporalDate").textContent = snap.date;
+  }
+
+  function startTemporalPlayback() {
+    if (!temporalSnapshots) return;
+    temporalPlaying = true;
+    const btn = document.getElementById("temporalPlayBtn");
+    btn.textContent = "⏸";
+    btn.classList.add("playing");
+
+    // Reset to step 0 and play through
+    goToTemporalStep(0);
+    let step = 0;
+    temporalInterval = setInterval(() => {
+      step++;
+      if (step >= temporalSnapshots.length) {
+        stopTemporalPlayback();
+        return;
+      }
+      goToTemporalStep(step);
+    }, 2400);
+  }
+
+  function stopTemporalPlayback() {
+    temporalPlaying = false;
+    clearInterval(temporalInterval);
+    temporalInterval = null;
+    const btn = document.getElementById("temporalPlayBtn");
+    if (btn) { btn.textContent = "▶"; btn.classList.remove("playing"); }
   }
 
   // ------------------------------------------------------------------
@@ -431,6 +556,15 @@
 
   if (el.resetMapBtn) {
     el.resetMapBtn.addEventListener("click", resetMapView);
+  }
+
+  // Temporal play button
+  const temporalPlayBtn = document.getElementById("temporalPlayBtn");
+  if (temporalPlayBtn) {
+    temporalPlayBtn.addEventListener("click", () => {
+      if (temporalPlaying) stopTemporalPlayback();
+      else startTemporalPlayback();
+    });
   }
 
   // ------------------------------------------------------------------

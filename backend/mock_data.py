@@ -590,3 +590,111 @@ def get_scenario_geojson(scenario_id: str) -> dict:
 def list_presets() -> list:
     """Return the list of scenario presets for the frontend buttons."""
     return deepcopy(SCENARIO_PRESETS)
+
+
+# ---------------------------------------------------------------------------
+# Temporal snapshot helpers — used by /api/v1/temporal/{scenario_id}
+# ---------------------------------------------------------------------------
+
+TEMPORAL_STEP_META = {
+    "flood": [
+        {"tag": "T+0d",  "label": "Initial Breach Detected",   "date": "Aug 12, 2025"},
+        {"tag": "T+4d",  "label": "Inundation Spreading",       "date": "Aug 16, 2025"},
+        {"tag": "T+8d",  "label": "Peak Flood Extent",          "date": "Aug 20, 2025"},
+    ],
+    "urban": [
+        {"tag": "T+0",   "label": "New Development Detected",   "date": "Jan 2025"},
+        {"tag": "T+3m",  "label": "Construction Phase 2",       "date": "Apr 2025"},
+        {"tag": "T+6m",  "label": "Maximum Sprawl Extent",      "date": "Jul 2025"},
+    ],
+    "water": [
+        {"tag": "T+0",   "label": "Pre-Monsoon — Low Water",    "date": "May 2025"},
+        {"tag": "T+2m",  "label": "Monsoon Inflow",             "date": "Jul 2025"},
+        {"tag": "T+4m",  "label": "Peak Lagoon Spread",         "date": "Sep 2025"},
+    ],
+    "fire": [
+        {"tag": "T+0d",  "label": "Active Hotspot — Day 1",     "date": "Feb 14, 2025"},
+        {"tag": "T+4d",  "label": "Burn Scar Expanding",        "date": "Feb 18, 2025"},
+        {"tag": "T+8d",  "label": "Maximum Fire Perimeter",     "date": "Feb 22, 2025"},
+    ],
+    "agriculture": [
+        {"tag": "T+0",   "label": "Early Stress Signals",       "date": "Jun 2025"},
+        {"tag": "T+1m",  "label": "Drought Spreading",          "date": "Jul 2025"},
+        {"tag": "T+2m",  "label": "Critical Failure Zone",      "date": "Aug 2025"},
+    ],
+}
+
+
+def _poly_centroid(coords: list) -> tuple:
+    """Compute lon/lat centroid of a polygon's outer ring."""
+    ring = coords[0]
+    n = max(len(ring) - 1, 1)  # exclude closing point if present
+    cx = sum(p[0] for p in ring[:n]) / n
+    cy = sum(p[1] for p in ring[:n]) / n
+    return cx, cy
+
+
+def _scale_poly(coords: list, factor: float) -> list:
+    """Scale a polygon's coordinates outward from its centroid by `factor`."""
+    cx, cy = _poly_centroid(coords)
+    return [
+        [
+            [round(cx + (p[0] - cx) * factor, 4),
+             round(cy + (p[1] - cy) * factor, 4)]
+            for p in ring
+        ]
+        for ring in coords
+    ]
+
+
+def get_scenario_temporal(scenario_id: str) -> list:
+    """
+    Return a list of 3 snapshot dicts representing temporal progression
+    of the scenario.  Each snapshot contains:
+        step   : 0 | 1 | 2
+        tag    : e.g. "T+0d", "T+4d", "T+8d"
+        label  : human-readable phase label
+        date   : representative observation date string
+        geojson: FeatureCollection with scaled / cropped features
+    """
+    base = get_scenario_geojson(scenario_id)
+    all_features = base.get("features", [])
+    step_meta = TEMPORAL_STEP_META.get(
+        scenario_id, TEMPORAL_STEP_META["flood"]
+    )
+
+    # Progressive reveal: T+0 → 1 feature at 55%, T+4 → 2 at 78%, T+8 → all at 100%
+    configs = [
+        {"scale": 0.55, "count": 1},
+        {"scale": 0.78, "count": max(1, len(all_features) - 1)},
+        {"scale": 1.00, "count": len(all_features)},
+    ]
+
+    snapshots = []
+    for i, (cfg, meta) in enumerate(zip(configs, step_meta)):
+        subset = all_features[: cfg["count"]]
+        scaled_features = []
+        for feat in subset:
+            f = deepcopy(feat)
+            f["geometry"]["coordinates"] = _scale_poly(
+                feat["geometry"]["coordinates"], cfg["scale"]
+            )
+            # Adjust area proportional to scale²
+            orig_area = feat["properties"].get("area_sqkm", 0)
+            f["properties"]["area_sqkm"] = round(
+                orig_area * cfg["scale"] * cfg["scale"], 1
+            )
+            scaled_features.append(f)
+
+        snapshots.append({
+            "step":   i,
+            "tag":    meta["tag"],
+            "label":  meta["label"],
+            "date":   meta["date"],
+            "geojson": {
+                "type":     "FeatureCollection",
+                "features": scaled_features,
+            },
+        })
+
+    return snapshots

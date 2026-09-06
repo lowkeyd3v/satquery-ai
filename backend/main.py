@@ -173,6 +173,31 @@ def submit_query(request: QueryRequest):
     )
 
 
+@app.get("/api/v1/temporal/{scenario_id}", tags=["temporal"])
+def get_temporal_snapshots(scenario_id: str):
+    """
+    Return 3 sequential GeoJSON snapshots (T+0, T+mid, T+peak) showing
+    the temporal progression of a detected scenario.
+    Used by the frontend temporal animation player.
+    """
+    try:
+        from backend.mock_data import get_scenario_temporal, SCENARIO_REGISTRY
+    except ImportError:
+        from mock_data import get_scenario_temporal, SCENARIO_REGISTRY
+
+    if scenario_id not in SCENARIO_REGISTRY:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Unknown scenario '{scenario_id}'. Valid: {sorted(SCENARIO_REGISTRY.keys())}",
+        )
+
+    return {
+        "scenario_id": scenario_id,
+        "total_steps": 3,
+        "snapshots": get_scenario_temporal(scenario_id),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Static frontend serving
 # ---------------------------------------------------------------------------
