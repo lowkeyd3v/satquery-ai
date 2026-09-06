@@ -39,8 +39,9 @@ SatQuery AI bridges the divide between raw Earth Observation (EO) satellite imag
                           │  index.html + styles.css + app.js            │
                           │  • Leaflet.js interactive satellite map      │
                           │  • Query console + prompt chips + presets    │
-                          │  • Live spatial intelligence & history log   │
-                          │  • GeoJSON vector export & reset controls    │
+                          │  • Temporal animation player (3-step)        │
+                          │  • Auto analysis report generation           │
+                          │  • GeoJSON export, Copy JSON, API Docs link  │
                           └───────────────────┬──────────────────────────┘
                                               │ REST (JSON over HTTP/HTTPS)
                                               ▼
@@ -50,6 +51,7 @@ SatQuery AI bridges the divide between raw Earth Observation (EO) satellite imag
                           │  • POST /api/v1/query                        │
                           │  • GET  /api/v1/scenarios                    │
                           │  • GET  /api/v1/health                       │
+                          │  • GET  /api/v1/temporal/{scenario_id}       │
                           │  • Static asset & Single-Page hosting        │
                           └───────────────────┬──────────────────────────┘
                                               │
@@ -125,7 +127,7 @@ Where:
 - **Backend & API:** Python 3.10+, FastAPI, Uvicorn, Pydantic v2
 - **Geospatial & Vector Processing:** Rasterio, Shapely, PyProj, GeoJSON
 - **Vision-Language & Deep Learning (Real-Mode):** HuggingFace Transformers, PyTorch, OpenCLIP, Qwen2-VL, SAM 2 (Segment Anything 2)
-- **Frontend & Mapping:** HTML5, Modern CSS3 (Glassmorphism Dark Theme), Vanilla JavaScript (ES6+), Leaflet.js
+- **Frontend & Mapping:** HTML5, CSS3 (Mission Control dark theme, JetBrains Mono), Vanilla JavaScript (ES2020+), Leaflet.js
 - **Satellite Basemaps:** Esri World Imagery (Satellite Ops) + CARTO Voyager Labels
 
 ---
@@ -183,6 +185,7 @@ uvicorn backend.main:app --reload
 | `GET` | `/api/v1/health` | Service health status and inference engine diagnostics |
 | `GET` | `/api/v1/scenarios` | List of supported preset scenarios, queries, and sensor sources |
 | `POST` | `/api/v1/query` | Submit natural-language query; returns GeoJSON with spatial polygons |
+| `GET` | `/api/v1/temporal/{scenario_id}` | Returns 3-step temporal GeoJSON snapshots (Detection → Spread → Peak) |
 
 ### Sample POST Request
 
@@ -262,11 +265,11 @@ satquery-ai/
 │   ├── __init__.py           # Package initializer
 │   ├── main.py               # FastAPI application, routing, and static mounting
 │   ├── inference.py          # SatQueryEngine: VLM pipeline & NLP classifier
-│   └── mock_data.py          # Curated GeoJSON scenarios, contours, and metadata
+│   └── mock_data.py          # Curated GeoJSON scenarios, contours, temporal snapshots
 └── frontend/
     ├── index.html            # Dashboard layout and control structure
-    ├── styles.css            # Dark glassmorphism styling and map theme
-    └── app.js                # Leaflet lifecycle, API dispatch, and GeoJSON export
+    ├── styles.css            # Mission control dark theme (JetBrains Mono, cyan accent)
+    └── app.js                # Leaflet lifecycle, temporal animation, API dispatch, export
 ```
 
 ---
