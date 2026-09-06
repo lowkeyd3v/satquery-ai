@@ -53,6 +53,7 @@
     submitBtn: document.getElementById("submitBtn"),
     quickChips: document.getElementById("quickChips"),
     exportGeoJsonBtn: document.getElementById("exportGeoJsonBtn"),
+    copyJsonBtn: document.getElementById("copyJsonBtn"),
     resetMapBtn: document.getElementById("resetMapBtn"),
     presetButtons: document.getElementById("presetButtons"),
     metricLabel: document.getElementById("metricLabel"),
@@ -420,6 +421,27 @@
   }
 
   // ------------------------------------------------------------------
+  // Copy raw JSON response to clipboard
+  // ------------------------------------------------------------------
+  async function copyCurrentJSON() {
+    if (!lastQueryResult) {
+      showToast("No result to copy. Run a query first!", true);
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(
+        JSON.stringify(lastQueryResult, null, 2)
+      );
+      if (el.copyJsonBtn) el.copyJsonBtn.querySelector("span").textContent = "✓ Copied!";
+      setTimeout(() => {
+        if (el.copyJsonBtn) el.copyJsonBtn.querySelector("span").textContent = "⎘ Copy JSON";
+      }, 2000);
+    } catch {
+      showToast("Clipboard access denied by browser.", true);
+    }
+  }
+
+  // ------------------------------------------------------------------
   // Reset Map View
   // ------------------------------------------------------------------
   function resetMapView() {
@@ -590,6 +612,10 @@
   // Action buttons
   if (el.exportGeoJsonBtn) {
     el.exportGeoJsonBtn.addEventListener("click", exportCurrentGeoJSON);
+  }
+
+  if (el.copyJsonBtn) {
+    el.copyJsonBtn.addEventListener("click", copyCurrentJSON);
   }
 
   if (el.resetMapBtn) {

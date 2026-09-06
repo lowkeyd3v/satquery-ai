@@ -97,6 +97,19 @@ html, body {
   border-radius: 999px; border: 1px solid var(--border-1);
 }
 
+.docs-link {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--text-2);
+  text-decoration: none;
+  padding: 5px 10px;
+  background: var(--bg-3);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-1);
+  transition: color 0.15s, border-color 0.15s;
+}
+.docs-link:hover { color: var(--cyan); border-color: rgba(34,211,238,0.4); }
+
 .status-dot {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--text-2);
@@ -363,6 +376,18 @@ html, body {
 .geojson-layer-enter path { animation: polyIn 0.5s ease forwards; }
 
 @media (max-width: 900px) { .sidebar { width: 260px; min-width: 260px; } }
+
+/* ─── Leaflet attribution — legally required, visually minimal ── */
+.leaflet-control-attribution {
+  background: transparent !important;
+  font-size: 8px !important;
+  opacity: 0.25 !important;
+  color: #fff !important;
+  padding: 1px 4px !important;
+  box-shadow: none !important;
+}
+.leaflet-control-attribution:hover { opacity: 0.7 !important; }
+.leaflet-control-attribution a { color: #fff !important; }
 
 /* ─── Analysis Report Panel ───────────────────────────────────── */
 .report-section { border-bottom: 1px solid var(--border-0); }
