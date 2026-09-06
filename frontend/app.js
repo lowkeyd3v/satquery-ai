@@ -224,12 +224,50 @@
   function handleQueryResponse(originalQuery, data) {
     renderGeoJsonLayer(data.geojson, data.scenario_id);
     updateMetricsPanel(data);
+    generateAnalysisReport(data);
     addHistoryEntry(originalQuery, data);
     showToast(
       `Detected "${data.matched_label}" (${Math.round(
         data.query_confidence * 100
       )}% confidence) in ${data.processing_time_ms}ms`
     );
+  }
+
+  // ------------------------------------------------------------------
+  // Auto Analysis Report
+  // ------------------------------------------------------------------
+  function generateAnalysisReport(data) {
+    const features = data.geojson.features || [];
+    if (!features.length) return;
+
+    const totalArea = features
+      .reduce((s, f) => s + (f.properties.area_sqkm || 0), 0)
+      .toFixed(1);
+    const p = features[0].properties || {};
+    const count = features.length;
+    const label = capitalize(data.matched_label);
+    const sensor = p.sensor || "Multi-Sensor EO";
+    const resolution = p.resolution || "—";
+    const severity = p.severity || "Moderate";
+    const action = p.action || "Standby for field assessment.";
+    const region = data.geojson.metadata?.region || "the monitored zone";
+    const confidence = Math.round(data.query_confidence * 100);
+
+    const severityColor =
+      severity === "Critical" ? "r-red"
+      : severity === "High"   ? "r-amb"
+      : "r-grn";
+
+    const reportEl = document.getElementById("reportText");
+    reportEl.innerHTML = `
+      <span class="r-hi">${count} ${label} zone${count !== 1 ? "s" : ""}</span>
+      detected across <span class="r-hi">${totalArea} km²</span> of ${region}.
+      ${sensor} imagery at <span class="r-hi">${resolution}</span> confirms
+      active ${label.toLowerCase()} signature with
+      <span class="r-hi">${confidence}%</span> query confidence.
+      Severity assessment: <span class="${severityColor}">${severity}</span>.
+      <div class="report-action">↳ ${action}</div>
+    `;
   }
 
   function renderGeoJsonLayer(geojson, scenarioId) {

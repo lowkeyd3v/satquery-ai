@@ -364,6 +364,39 @@ html, body {
 
 @media (max-width: 900px) { .sidebar { width: 260px; min-width: 260px; } }
 
+/* ─── Analysis Report Panel ───────────────────────────────────── */
+.report-section { border-bottom: 1px solid var(--border-0); }
+
+.report-panel {
+  background: var(--bg-0);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  padding: 11px 13px;
+  margin-top: 8px;
+}
+
+.report-text {
+  font-size: 11.5px;
+  color: var(--text-1);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.report-text .r-hi  { color: var(--cyan);  font-weight: 600; }
+.report-text .r-red { color: var(--red);   font-weight: 600; }
+.report-text .r-amb { color: var(--amber); font-weight: 600; }
+.report-text .r-grn { color: var(--green); font-weight: 600; }
+
+.report-action {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-0);
+  font-size: 11px;
+  color: var(--cyan);
+  font-family: var(--mono);
+  line-height: 1.5;
+}
+
 /* ─── Temporal Playback Bar ───────────────────────────────────── */
 .temporal-bar {
   display: none;

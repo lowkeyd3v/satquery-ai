@@ -598,29 +598,29 @@ def list_presets() -> list:
 
 TEMPORAL_STEP_META = {
     "flood": [
-        {"tag": "T+0d",  "label": "Initial Breach Detected",   "date": "Aug 12, 2025"},
-        {"tag": "T+4d",  "label": "Inundation Spreading",       "date": "Aug 16, 2025"},
-        {"tag": "T+8d",  "label": "Peak Flood Extent",          "date": "Aug 20, 2025"},
+        {"tag": "Detection", "label": "Initial Breach Detected",   "date": "Aug 12, 2025"},
+        {"tag": "Spread",    "label": "Inundation Spreading",       "date": "Aug 16, 2025"},
+        {"tag": "Peak",      "label": "Peak Flood Extent",          "date": "Aug 20, 2025"},
     ],
     "urban": [
-        {"tag": "T+0",   "label": "New Development Detected",   "date": "Jan 2025"},
-        {"tag": "T+3m",  "label": "Construction Phase 2",       "date": "Apr 2025"},
-        {"tag": "T+6m",  "label": "Maximum Sprawl Extent",      "date": "Jul 2025"},
+        {"tag": "Detection", "label": "New Development Detected",   "date": "Jan 2025"},
+        {"tag": "Spread",    "label": "Construction Phase 2",       "date": "Apr 2025"},
+        {"tag": "Peak",      "label": "Maximum Sprawl Extent",      "date": "Jul 2025"},
     ],
     "water": [
-        {"tag": "T+0",   "label": "Pre-Monsoon — Low Water",    "date": "May 2025"},
-        {"tag": "T+2m",  "label": "Monsoon Inflow",             "date": "Jul 2025"},
-        {"tag": "T+4m",  "label": "Peak Lagoon Spread",         "date": "Sep 2025"},
+        {"tag": "Detection", "label": "Pre-Monsoon — Low Water",    "date": "May 2025"},
+        {"tag": "Spread",    "label": "Monsoon Inflow",             "date": "Jul 2025"},
+        {"tag": "Peak",      "label": "Peak Lagoon Spread",         "date": "Sep 2025"},
     ],
     "fire": [
-        {"tag": "T+0d",  "label": "Active Hotspot — Day 1",     "date": "Feb 14, 2025"},
-        {"tag": "T+4d",  "label": "Burn Scar Expanding",        "date": "Feb 18, 2025"},
-        {"tag": "T+8d",  "label": "Maximum Fire Perimeter",     "date": "Feb 22, 2025"},
+        {"tag": "Detection", "label": "Active Hotspot — Day 1",     "date": "Feb 14, 2025"},
+        {"tag": "Spread",    "label": "Burn Scar Expanding",        "date": "Feb 18, 2025"},
+        {"tag": "Peak",      "label": "Maximum Fire Perimeter",     "date": "Feb 22, 2025"},
     ],
     "agriculture": [
-        {"tag": "T+0",   "label": "Early Stress Signals",       "date": "Jun 2025"},
-        {"tag": "T+1m",  "label": "Drought Spreading",          "date": "Jul 2025"},
-        {"tag": "T+2m",  "label": "Critical Failure Zone",      "date": "Aug 2025"},
+        {"tag": "Detection", "label": "Early Stress Signals",       "date": "Jun 2025"},
+        {"tag": "Spread",    "label": "Drought Spreading",          "date": "Jul 2025"},
+        {"tag": "Peak",      "label": "Critical Failure Zone",      "date": "Aug 2025"},
     ],
 }
 
