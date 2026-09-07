@@ -90,6 +90,8 @@ html, body {
 
 .brand-text p { display: none; }
 
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+
 .status-indicator {
   display: flex; align-items: center; gap: 7px;
   font-family: var(--mono); font-size: 11px; color: var(--text-2);
@@ -355,6 +357,32 @@ html, body {
 }
 .toast.show { opacity: 1; transform: translateY(0) scale(1); }
 .toast.error { border-left-color: var(--red); }
+
+/* ─── Scenario Map Badge ──────────────────────────────────────── */
+.scenario-badge {
+  display: none;
+  position: absolute;
+  top: 16px; left: 16px;
+  z-index: 500;
+  align-items: center;
+  gap: 7px;
+  background: rgba(13,13,17,0.88);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-lg);
+  padding: 6px 14px;
+  backdrop-filter: blur(10px);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  animation: fadeIn 0.3s ease;
+}
+.scenario-badge.visible { display: flex; }
+
+.badge-scenario { color: var(--cyan); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.badge-region   { color: var(--text-1); }
+.badge-date     { color: var(--text-2); }
+.badge-sep      { color: var(--border-2); }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 
 /* LEAFLET ZOOM */
 .leaflet-control-zoom {

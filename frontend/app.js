@@ -77,6 +77,7 @@
   }).setView(INDIA_CENTER, INDIA_ZOOM);
 
   L.control.zoom({ position: "bottomright" }).addTo(map);
+  L.control.scale({ position: "bottomleft", imperial: false, maxWidth: 120 }).addTo(map);
 
   // Satellite tile layer (Esri World Imagery)
   const satelliteLayer = L.tileLayer(
@@ -344,17 +345,36 @@
     const sensorText = firstFeature.sensor || data.geojson.metadata?.sensor || "Multi-Sensor EO";
 
     el.metricLabel.textContent = capitalize(data.matched_label);
-    el.metricConfidence.textContent = `${Math.round(
-      data.query_confidence * 100
-    )}%`;
-    el.confidenceBarFill.style.width = `${Math.round(
-      data.query_confidence * 100
-    )}%`;
+    el.metricConfidence.textContent = `${Math.round(data.query_confidence * 100)}%`;
+
+    // Animate confidence bar: reset to 0 first, then set target on next frame
+    el.confidenceBarFill.style.transition = "none";
+    el.confidenceBarFill.style.width = "0%";
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      el.confidenceBarFill.style.transition = "width 0.8s cubic-bezier(0.4,0,0.2,1)";
+      el.confidenceBarFill.style.width = `${Math.round(data.query_confidence * 100)}%`;
+    }));
+
     el.metricArea.textContent = `${totalArea.toFixed(1)} km²`;
     el.metricSensor.textContent = sensorText;
     el.metricMode.textContent = data.mode.toUpperCase();
     el.metricLatency.textContent = `${data.processing_time_ms} ms`;
     el.metricStatus.textContent = `${features.length} vector polygon(s) active`;
+
+    // Update scenario badge
+    updateScenarioBadge(data);
+  }
+
+  function updateScenarioBadge(data) {
+    const region = data.geojson.metadata?.region || capitalize(data.scenario_id);
+    const date = data.geojson.metadata?.query_timestamp
+      ? new Date(data.geojson.metadata.query_timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+      : new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
+    document.getElementById("badgeScenario").textContent = capitalize(data.matched_label);
+    document.getElementById("badgeRegion").textContent = region;
+    document.getElementById("badgeDate").textContent = date;
+    document.getElementById("scenarioBadge").classList.add("visible");
   }
 
   function capitalize(str) {
@@ -388,6 +408,36 @@
       runQuery({ query: query, scenario_id: data.scenario_id });
     });
     el.historyLog.insertBefore(item, el.historyLog.firstChild);
+
+    // Persist to localStorage (keep last 10)
+    try {
+      const stored = JSON.parse(localStorage.getItem("satquery_history") || "[]");
+      stored.unshift({ query, scenario_id: data.scenario_id, matched_label: data.matched_label, confidence: data.query_confidence, mode: data.mode, time });
+      localStorage.setItem("satquery_history", JSON.stringify(stored.slice(0, 10)));
+    } catch (e) { /* localStorage unavailable */ }
+  }
+
+  function loadHistoryFromStorage() {
+    try {
+      const stored = JSON.parse(localStorage.getItem("satquery_history") || "[]");
+      if (!stored.length) return;
+      const emptyPlaceholder = el.historyLog.querySelector(".history-empty");
+      if (emptyPlaceholder) emptyPlaceholder.remove();
+      stored.forEach(entry => {
+        const item = document.createElement("li");
+        item.className = "history-item";
+        item.style.borderLeftColor = SCENARIO_COLORS[entry.scenario_id] || SCENARIO_COLORS.unknown;
+        item.innerHTML = `
+          <span class="h-query">${escapeHtml(entry.query)}</span>
+          <span class="h-meta">${entry.time} &middot; ${capitalize(entry.matched_label)} &middot; ${Math.round(entry.confidence * 100)}% &middot; ${entry.mode.toUpperCase()}</span>
+        `;
+        item.addEventListener("click", () => {
+          el.queryInput.value = entry.query;
+          runQuery({ query: entry.query, scenario_id: entry.scenario_id });
+        });
+        el.historyLog.appendChild(item);
+      });
+    } catch (e) { /* localStorage unavailable */ }
   }
 
   function escapeHtml(str) {
@@ -460,6 +510,7 @@
     el.metricLatency.textContent = "—";
     el.metricStatus.textContent = "IDLE";
     hideTemporalBar();
+    document.getElementById("scenarioBadge").classList.remove("visible");
     showToast("Map view reset to Pan-India coverage.");
   }
 
@@ -635,5 +686,6 @@
   // Initialization
   // ------------------------------------------------------------------
   setStatus("busy", "Connecting to inference engine…");
+  loadHistoryFromStorage();
   loadPresets();
 })();
