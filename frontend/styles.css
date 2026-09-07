@@ -58,7 +58,20 @@ html, body {
   z-index: 10;
 }
 
-.brand { display: flex; align-items: center; gap: 10px; }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.brand:hover {
+  opacity: 0.85;
+}
+.brand:active {
+  transform: scale(0.98);
+}
 
 .brand-icon {
   width: 32px; height: 32px;
