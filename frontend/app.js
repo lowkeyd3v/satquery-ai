@@ -248,19 +248,19 @@
       .toFixed(1);
     const p = features[0].properties || {};
     const count = features.length;
-    const label = capitalize(data.matched_label);
-    const sensor = p.sensor || "Multi-Sensor EO";
-    const resolution = p.resolution || "—";
-    const severity = p.severity || "Moderate";
-    const action = p.action || "Standby for field assessment.";
-    const region = data.geojson.metadata?.region || "the monitored zone";
+    const label = escapeHtml(capitalize(data.matched_label));
+    const sensor = escapeHtml(p.sensor || "Multi-Sensor EO");
+    const resolution = escapeHtml(p.resolution || "—");
+    const severity = escapeHtml(p.severity || "Moderate");
+    const action = escapeHtml(p.action || "Standby for field assessment.");
+    const region = escapeHtml(data.geojson.metadata?.region || "the monitored zone");
     const confidence = Math.round(data.query_confidence * 100);
     const datasetSource = data.geojson.metadata?.dataset_source || p.dataset || "";
     const methodology = data.geojson.metadata?.methodology || p.methodology || "";
 
     const severityColor =
-      severity === "Critical" ? "r-red"
-      : severity === "High"   ? "r-amb"
+      p.severity === "Critical" ? "r-red"
+      : p.severity === "High"   ? "r-amb"
       : "r-grn";
 
     const reportEl = document.getElementById("reportText");
