@@ -47,7 +47,7 @@
   // ------------------------------------------------------------------
   const el = {
     statusDot: document.getElementById("statusDot"),
-    statusText: document.getElementById("statusText"),
+    statusText: document.getElementById("statusText"), // may be null if removed from HTML
     queryForm: document.getElementById("queryForm"),
     queryInput: document.getElementById("queryInput"),
     submitBtn: document.getElementById("submitBtn"),
@@ -107,7 +107,7 @@
   // ------------------------------------------------------------------
   function setStatus(state, text) {
     el.statusDot.className = `status-dot ${state}`;
-    el.statusText.textContent = text;
+    if (el.statusText) el.statusText.textContent = text;
   }
 
   // ------------------------------------------------------------------
