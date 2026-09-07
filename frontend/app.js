@@ -360,21 +360,6 @@
     el.metricMode.textContent = data.mode.toUpperCase();
     el.metricLatency.textContent = `${data.processing_time_ms} ms`;
     el.metricStatus.textContent = `${features.length} vector polygon(s) active`;
-
-    // Update scenario badge
-    updateScenarioBadge(data);
-  }
-
-  function updateScenarioBadge(data) {
-    const region = data.geojson.metadata?.region || capitalize(data.scenario_id);
-    const date = data.geojson.metadata?.query_timestamp
-      ? new Date(data.geojson.metadata.query_timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
-      : new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-
-    document.getElementById("badgeScenario").textContent = capitalize(data.matched_label);
-    document.getElementById("badgeRegion").textContent = region;
-    document.getElementById("badgeDate").textContent = date;
-    document.getElementById("scenarioBadge").classList.add("visible");
   }
 
   function capitalize(str) {
@@ -510,7 +495,6 @@
     el.metricLatency.textContent = "—";
     el.metricStatus.textContent = "IDLE";
     hideTemporalBar();
-    document.getElementById("scenarioBadge").classList.remove("visible");
     showToast("Map view reset to Pan-India coverage.");
   }
 
