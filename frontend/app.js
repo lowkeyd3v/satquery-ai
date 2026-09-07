@@ -672,18 +672,11 @@
     el.resetMapBtn.addEventListener("click", resetMapView);
   }
 
-  // Brand logo click — instantly resets the entire workspace
+  // Brand logo click — instantly refreshes the page
   const brandLogo = document.getElementById("brandLogo");
   if (brandLogo) {
     brandLogo.addEventListener("click", () => {
-      el.queryInput.value = "";
-      resetMapView();
-      const reportText = document.getElementById("reportText");
-      if (reportText) {
-        reportText.innerHTML = "Run a query to generate an analysis report.";
-      }
-      stopTemporalPlayback();
-      showToast("Workspace reset to initial state.");
+      window.location.reload();
     });
   }
 
