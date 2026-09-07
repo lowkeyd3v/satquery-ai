@@ -156,9 +156,9 @@ To optimize for both lightweight serverless cloud deployments and high-performan
 
 ## 5. Installation & Setup
 
-### Option A: Local Development (Recommended for Hackathon Presentation)
+### Option A: Local Development (Standard / Fast Setup)
 
-Running locally provides zero-latency responses without depending on venue Wi-Fi:
+Run the full platform locally with lightweight dependencies:
 
 ```bash
 # 1. Clone repository
