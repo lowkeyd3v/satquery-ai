@@ -1,8 +1,8 @@
 {
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/index.py" },
-    { "source": "/docs", "destination": "/api/index.py" },
-    { "source": "/redoc", "destination": "/api/index.py" },
-    { "source": "/openapi.json", "destination": "/api/index.py" }
+    { "source": "/docs", "destination": "/api/index.py?path=docs" },
+    { "source": "/redoc", "destination": "/api/index.py?path=redoc" },
+    { "source": "/openapi.json", "destination": "/api/index.py?path=openapi.json" }
   ]
 }
