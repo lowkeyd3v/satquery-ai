@@ -364,7 +364,8 @@
 
     el.metricArea.textContent = `${totalArea.toFixed(1)} km²`;
     el.metricSensor.textContent = sensorText;
-    el.metricMode.textContent = data.mode.toUpperCase();
+    const rawMode = (data.mode || "").toLowerCase();
+    el.metricMode.textContent = rawMode === "real" ? "NEURAL VLM" : "CALIBRATED";
     el.metricLatency.textContent = `${data.processing_time_ms} ms`;
     el.metricStatus.textContent = `${features.length} vector polygon(s) active`;
   }

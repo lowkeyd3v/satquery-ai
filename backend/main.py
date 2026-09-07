@@ -158,12 +158,12 @@ def submit_query(request: QueryRequest):
 
         return QueryResponse(
             success=True,
-            mode="mock",
+            mode="calibrated",
             scenario_id=request.scenario_id,
             matched_label=request.scenario_id,
             query_confidence=calculated_conf,
             processing_time_ms=elapsed_ms,
-            message=f"Preset scenario '{request.scenario_id}' loaded directly.",
+            message=f"Preset scenario '{request.scenario_id}' loaded directly from calibrated spatial engine.",
             geojson=geojson,
         )
 

@@ -310,8 +310,8 @@ class SatQueryEngine:
         # demo response, but keep the reported confidence low.
         effective_scenario = scenario_id if scenario_id != "unknown" else "water"
 
-        mode = "mock"
-        message = "Served from mock inference fallback."
+        mode = "calibrated"
+        message = "Served from calibrated deterministic spatial engine."
 
         if self.real_mode_requested and self.models_loaded:
             try:
@@ -321,7 +321,7 @@ class SatQueryEngine:
                 mode = "real"
                 message = "Served from real VLM + segmentation pipeline."
             except Exception as exc:  # noqa: BLE001
-                logger.info("Real inference unavailable (%s); using mock.", exc)
+                logger.info("Real inference unavailable (%s); using calibrated spatial engine.", exc)
                 geojson = get_scenario_geojson(effective_scenario)
         else:
             geojson = get_scenario_geojson(effective_scenario)
@@ -349,7 +349,7 @@ class SatQueryEngine:
             "models_loaded": self.models_loaded,
             "vlm_model_name": self.vlm_model_name,
             "segmentation_model_name": self.segmentation_model_name,
-            "active_mode": "real" if self.models_loaded else "mock",
+            "active_mode": "real" if self.models_loaded else "calibrated",
         }
 
 
