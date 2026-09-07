@@ -148,12 +148,20 @@ def submit_query(request: QueryRequest):
         geojson = get_scenario_geojson(request.scenario_id)
         elapsed_ms = round((time.perf_counter() - start) * 1000, 2)
 
+        # Compute practical scenario confidence as the mean of detected feature confidences
+        features = geojson.get("features", [])
+        if features:
+            conf_scores = [f.get("properties", {}).get("confidence", 0.88) for f in features]
+            calculated_conf = round(sum(conf_scores) / len(conf_scores), 2)
+        else:
+            calculated_conf = 0.88
+
         return QueryResponse(
             success=True,
             mode="mock",
             scenario_id=request.scenario_id,
             matched_label=request.scenario_id,
-            query_confidence=0.96,
+            query_confidence=calculated_conf,
             processing_time_ms=elapsed_ms,
             message=f"Preset scenario '{request.scenario_id}' loaded directly.",
             geojson=geojson,

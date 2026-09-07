@@ -45,7 +45,7 @@ ASSAM_FLOOD_GEOJSON = {
             "properties": {
                 "id": "flood_001",
                 "label": "Severe Riverine Inundation",
-                "confidence": 0.96,
+                "confidence": 0.91,
                 "area_sqkm": 48.2,
                 "severity": "Critical",
                 "sensor": "Sentinel-1A C-SAR / RISAT-1A",
@@ -81,7 +81,7 @@ ASSAM_FLOOD_GEOJSON = {
             "properties": {
                 "id": "flood_002",
                 "label": "Embankment Breach & Waterlogging",
-                "confidence": 0.89,
+                "confidence": 0.86,
                 "area_sqkm": 31.4,
                 "severity": "High",
                 "sensor": "Sentinel-1A C-SAR / RISAT-1A",
@@ -115,7 +115,7 @@ ASSAM_FLOOD_GEOJSON = {
             "properties": {
                 "id": "flood_003",
                 "label": "Wildlife Corridor Wetland Inundation",
-                "confidence": 0.84,
+                "confidence": 0.79,
                 "area_sqkm": 19.5,
                 "severity": "Moderate",
                 "sensor": "Cartosat-2E / Sentinel-1A",
@@ -172,7 +172,7 @@ BENGALURU_URBAN_GEOJSON = {
             "properties": {
                 "id": "urban_001",
                 "label": "Tech Corridor & Commercial Infill",
-                "confidence": 0.93,
+                "confidence": 0.89,
                 "area_sqkm": 21.8,
                 "severity": "Rapid Growth",
                 "sensor": "Cartosat-3 High-Resolution Optical",
@@ -205,7 +205,7 @@ BENGALURU_URBAN_GEOJSON = {
             "properties": {
                 "id": "urban_002",
                 "label": "Horizontal Peri-Urban Residential Layouts",
-                "confidence": 0.88,
+                "confidence": 0.84,
                 "area_sqkm": 26.4,
                 "severity": "Moderate Growth",
                 "sensor": "Cartosat-3 / Resourcesat-2A",
@@ -238,7 +238,7 @@ BENGALURU_URBAN_GEOJSON = {
             "properties": {
                 "id": "urban_003",
                 "label": "Aerotropolis Logistics & Industrial Zone",
-                "confidence": 0.85,
+                "confidence": 0.81,
                 "area_sqkm": 16.3,
                 "severity": "Planned Infrastructure",
                 "sensor": "Cartosat-3 Optical",
@@ -294,7 +294,7 @@ CHILIKA_WATER_GEOJSON = {
             "properties": {
                 "id": "water_001",
                 "label": "Brackish Water Lagoon Core",
-                "confidence": 0.98,
+                "confidence": 0.93,
                 "area_sqkm": 128.4,
                 "severity": "Stable Extent",
                 "sensor": "Resourcesat-2A LISS-IV / Sentinel-2 MSI",
@@ -328,7 +328,7 @@ CHILIKA_WATER_GEOJSON = {
             "properties": {
                 "id": "water_002",
                 "label": "Nalabana Wetland Bird Sanctuary",
-                "confidence": 0.94,
+                "confidence": 0.88,
                 "area_sqkm": 14.8,
                 "severity": "Protected Zone",
                 "sensor": "Resourcesat-2A LISS-IV",
@@ -359,7 +359,7 @@ CHILIKA_WATER_GEOJSON = {
             "properties": {
                 "id": "water_003",
                 "label": "Satapada Tidal Estuarine Channel",
-                "confidence": 0.89,
+                "confidence": 0.84,
                 "area_sqkm": 9.2,
                 "severity": "Active Inlet",
                 "sensor": "Sentinel-2 MSI",
@@ -414,7 +414,7 @@ SIMILIPAL_FIRE_GEOJSON = {
             "properties": {
                 "id": "fire_001",
                 "label": "Active Forest Wildfire Front",
-                "confidence": 0.95,
+                "confidence": 0.91,
                 "area_sqkm": 14.2,
                 "severity": "Emergency",
                 "sensor": "Oceansat-3 / NASA VIIRS 375m Thermal IR",
@@ -446,7 +446,7 @@ SIMILIPAL_FIRE_GEOJSON = {
             "properties": {
                 "id": "fire_002",
                 "label": "Post-Fire Canopy Burn Scar",
-                "confidence": 0.91,
+                "confidence": 0.85,
                 "area_sqkm": 28.6,
                 "severity": "High Post-Fire Damage",
                 "sensor": "Sentinel-2 MSI SWIR/NIR",
@@ -502,7 +502,7 @@ VIDARBHA_AGRI_GEOJSON = {
             "properties": {
                 "id": "agri_001",
                 "label": "Severe Crop Moisture Deficit",
-                "confidence": 0.92,
+                "confidence": 0.88,
                 "area_sqkm": 54.3,
                 "severity": "Drought Stress",
                 "sensor": "Resourcesat-2A AWiFS / Sentinel-2 NDVI",
@@ -534,7 +534,7 @@ VIDARBHA_AGRI_GEOJSON = {
             "properties": {
                 "id": "agri_002",
                 "label": "Critically Depleted Farm Pond Storage",
-                "confidence": 0.87,
+                "confidence": 0.82,
                 "area_sqkm": 18.7,
                 "severity": "Low Water Storage",
                 "sensor": "Sentinel-1A SAR / Cartosat-2",
