@@ -65,6 +65,7 @@
     metricLatency: document.getElementById("metricLatency"),
     metricStatus: document.getElementById("metricStatus"),
     historyLog: document.getElementById("historyLog"),
+    clearHistoryBtn: document.getElementById("clearHistoryBtn"),
     toast: document.getElementById("toast"),
   };
 
@@ -431,6 +432,14 @@
     } catch (e) { /* localStorage unavailable */ }
   }
 
+  function clearQueryHistory() {
+    try {
+      localStorage.removeItem("satquery_history");
+    } catch (e) {}
+    el.historyLog.innerHTML = '<li class="history-empty">No queries submitted yet.</li>';
+    showToast("Query history cleared.");
+  }
+
   function escapeHtml(str) {
     if (!str) return "";
     const div = document.createElement("div");
@@ -661,6 +670,10 @@
 
   if (el.resetMapBtn) {
     el.resetMapBtn.addEventListener("click", resetMapView);
+  }
+
+  if (el.clearHistoryBtn) {
+    el.clearHistoryBtn.addEventListener("click", clearQueryHistory);
   }
 
   // Temporal play button

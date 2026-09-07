@@ -269,6 +269,22 @@ html, body {
 
 /* HISTORY */
 .history-section { flex: 1; display: flex; flex-direction: column; }
+.clear-history-btn {
+  background: transparent;
+  border: 1px solid var(--border-1);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--text-2);
+  cursor: pointer;
+  padding: 2px 7px;
+  border-radius: var(--r-sm);
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.clear-history-btn:hover {
+  color: var(--red);
+  border-color: rgba(255, 23, 68, 0.4);
+  background: rgba(255, 23, 68, 0.08);
+}
 .history-log {
   list-style: none; display: flex; flex-direction: column; gap: 3px;
   flex: 1; overflow-y: auto; margin-top: 4px;
