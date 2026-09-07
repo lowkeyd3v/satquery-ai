@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Optional
 
 # Ensure this file's own directory (backend/) is on sys.path so that the
-# sibling modules `inference` and `mock_data` can always be imported with
+# sibling modules `inference` and `spatial_data` can always be imported with
 # plain absolute imports, regardless of whether this app is launched as
 # `uvicorn backend.main:app` from the project root, or as `uvicorn main:app`
 # from inside the backend/ directory itself.
@@ -132,9 +132,9 @@ def submit_query(request: QueryRequest):
     if request.scenario_id:
         # Explicit scenario override (used by the preset buttons in the UI)
         try:
-            from backend.mock_data import get_scenario_geojson, SCENARIO_REGISTRY
+            from backend.spatial_data import get_scenario_geojson, SCENARIO_REGISTRY
         except ImportError:
-            from mock_data import get_scenario_geojson, SCENARIO_REGISTRY
+            from spatial_data import get_scenario_geojson, SCENARIO_REGISTRY
 
         if request.scenario_id not in SCENARIO_REGISTRY:
             raise HTTPException(
@@ -189,9 +189,9 @@ def get_temporal_snapshots(scenario_id: str):
     Used by the frontend temporal animation player.
     """
     try:
-        from backend.mock_data import get_scenario_temporal, SCENARIO_REGISTRY
+        from backend.spatial_data import get_scenario_temporal, SCENARIO_REGISTRY
     except ImportError:
-        from mock_data import get_scenario_temporal, SCENARIO_REGISTRY
+        from spatial_data import get_scenario_temporal, SCENARIO_REGISTRY
 
     if scenario_id not in SCENARIO_REGISTRY:
         raise HTTPException(

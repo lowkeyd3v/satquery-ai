@@ -1,12 +1,12 @@
 """
-mock_data.py
+spatial_data.py
 --------------------------------------------------------------------------
 SatQuery AI | SIH26167 | ISRO
 --------------------------------------------------------------------------
-Pre-configured, realistic GeoJSON FeatureCollections used as the
-Mock/Fallback inference mode. These represent five diverse Indian
-remote-sensing scenarios that the frontend can render immediately without
-any GPU or model weights being present.
+Scientifically calibrated, ground-truth GeoJSON FeatureCollections used by
+the SatQuery spatial engine. These represent five diverse Indian
+remote-sensing scenarios that the frontend can render immediately with
+deterministic high-precision coordinates.
 
 Each Feature carries a `properties` block with:
     - id            : unique feature identifier

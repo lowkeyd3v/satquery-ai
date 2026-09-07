@@ -81,11 +81,11 @@ SatQuery AI bridges the divide between raw Earth Observation (EO) satellite imag
                           │ REAL MODE                MOCK / FALLBACK   │
                           │ (SATQUERY_REAL_MODE=1    (Default & Edge)  │
                           │  + GPU weights loaded)                     │
-                          │     │                        │             │
                           │     ▼                        ▼             │
-                          │ Vision-Language Model    backend/mock_data │
-                          │ (RemoteCLIP / Qwen2-VL)  Curated GeoJSON:  │
-                          │ → Grounded phrase        • Assam Floods    │
+                          │ Vision-Language Model    backend/          │
+                          │ (RemoteCLIP / Qwen2-VL)  spatial_data.py   │
+                          │ → Grounded phrase        Calibrated GeoJSON:
+                          │     │                    • Assam Floods    │
                           │     │                    • Bengaluru Sprawl│
                           │     ▼                    • Chilika Lagoon  │
                           │ Open-Vocabulary          • Similipal Fire  │
@@ -344,7 +344,7 @@ satquery-ai/
 │   ├── __init__.py           # Backend package initializer
 │   ├── main.py               # FastAPI application, API endpoints & local static server
 │   ├── inference.py          # SatQueryEngine: VLM pipeline & NLP semantic classifier
-│   └── mock_data.py          # Curated GeoJSON scenarios, contours & temporal progression
+│   └── spatial_data.py       # Calibrated GeoJSON scenarios, contours & temporal progression
 ├── frontend/                 # Local source frontend
 │   ├── index.html            # Dashboard markup and control panels
 │   ├── styles.css            # Dark theme styles, responsive layout, animations

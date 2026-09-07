@@ -37,9 +37,9 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 try:
-    from backend.mock_data import get_scenario_geojson, list_presets, SCENARIO_REGISTRY
+    from backend.spatial_data import get_scenario_geojson, list_presets, SCENARIO_REGISTRY
 except ImportError:
-    from mock_data import get_scenario_geojson, list_presets, SCENARIO_REGISTRY
+    from spatial_data import get_scenario_geojson, list_presets, SCENARIO_REGISTRY
 
 logger = logging.getLogger("satquery.inference")
 logging.basicConfig(level=logging.INFO)
