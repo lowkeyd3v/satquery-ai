@@ -42,3 +42,8 @@ weights/
 dist/
 build/
 *.egg
+
+# Generated PDFs & local docs
+*.pdf
+docs/
+
