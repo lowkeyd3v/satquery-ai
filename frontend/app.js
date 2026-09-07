@@ -254,6 +254,8 @@
     const action = p.action || "Standby for field assessment.";
     const region = data.geojson.metadata?.region || "the monitored zone";
     const confidence = Math.round(data.query_confidence * 100);
+    const datasetSource = data.geojson.metadata?.dataset_source || p.dataset || "";
+    const methodology = data.geojson.metadata?.methodology || p.methodology || "";
 
     const severityColor =
       severity === "Critical" ? "r-red"
@@ -269,6 +271,8 @@
       <span class="r-hi">${confidence}%</span> query confidence.
       Severity assessment: <span class="${severityColor}">${severity}</span>.
       <div class="report-action">↳ ${action}</div>
+      ${datasetSource ? `<div class="report-provenance"><strong>Source:</strong> ${escapeHtml(datasetSource)}</div>` : ""}
+      ${methodology ? `<div class="report-method"><strong>Algorithm:</strong> ${escapeHtml(methodology)}</div>` : ""}
     `;
   }
 
@@ -305,6 +309,8 @@
               <div class="popup-row"><strong>Area:</strong> ${p.area_sqkm ?? "—"} km²</div>
               ${p.sensor ? `<div class="popup-row"><strong>Sensor:</strong> ${escapeHtml(p.sensor)}</div>` : ""}
               ${p.resolution ? `<div class="popup-row"><strong>GSD:</strong> ${escapeHtml(p.resolution)}</div>` : ""}
+              ${p.dataset ? `<div class="popup-row"><strong>Dataset:</strong> ${escapeHtml(p.dataset)}</div>` : ""}
+              ${p.methodology ? `<div class="popup-row"><strong>Method:</strong> ${escapeHtml(p.methodology)}</div>` : ""}
               ${p.description ? `<div class="popup-desc">${escapeHtml(p.description)}</div>` : ""}
               ${p.action ? `<div class="popup-action"><strong>Action:</strong> ${escapeHtml(p.action)}</div>` : ""}
             </div>

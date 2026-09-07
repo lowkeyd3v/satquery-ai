@@ -38,10 +38,10 @@ SatQuery AI bridges the divide between raw Earth Observation (EO) satellite imag
                           │              FRONTEND (Browser)              │
                           │  index.html + styles.css + app.js            │
                           │  • Leaflet.js interactive satellite map      │
-                          │  • Query console + prompt chips + presets    │
+                          │  • Query console + preset scenario triggers  │
                           │  • Temporal animation player (3-step)        │
-                          │  • Auto analysis report generation           │
-                          │  • GeoJSON export, Copy JSON, API Docs link  │
+                          │  • Auto analysis report & sensor provenance  │
+                          │  • GeoJSON vector export & API Docs link     │
                           └───────────────────┬──────────────────────────┘
                                               │ REST (JSON over HTTP/HTTPS)
                                               ▼
@@ -260,6 +260,7 @@ curl -X POST http://127.0.0.1:8000/api/v1/query \
 ```
 satquery-ai/
 ├── README.md                 # Project documentation and specifications
+├── DATASETS.md               # Scientific dataset provenance, benchmarks & ground truth
 ├── requirements.txt          # Python runtime dependencies
 ├── backend/
 │   ├── __init__.py           # Package initializer
@@ -284,9 +285,11 @@ When evaluating SatQuery AI, key technical design decisions include:
    Spatial masks are rigorously mapped into EPSG:4326/WGS84 coordinates via native GeoTIFF affine transform matrices, ensuring GIS interoperability with QGIS, ArcGIS, and Bhuvan.
 3. **Multi-Sensor Cross-Compatibility:**
    The architecture handles optical data (Cartosat, Resourcesat), thermal infrared (Oceansat-3, MODIS), and Synthetic Aperture Radar (RISAT-1A, Sentinel-1) for all-weather, day/night operability.
-4. **Resilient Dual-Mode Engineering:**
+4. **Empirical Dataset Provenance & Ground Truth Anchoring:**
+   Every scenario is anchored to verified satellite passes from **Copernicus Emergency Management Service (EMSR586)**, **NASA FIRMS**, **JRC Global Surface Water**, **European Commission GHSL**, and **ISRO Bhuvan**. See [`DATASETS.md`](./DATASETS.md) for full scientific citations and algorithm indices ($\sigma^0\ \text{SAR}$, $\text{NDBI}$, $\text{MNDWI}$, $\Delta\text{NBR}$, $\text{VCI}$).
+5. **Resilient Dual-Mode Engineering:**
    The unified API contract operates identically across GPU-accelerated server clusters and offline field deployments, guaranteeing sub-100ms response times and zero-downtime reliability.
-5. **Direct GeoJSON Interoperability:**
+6. **Direct GeoJSON Interoperability:**
    Every generated output can be exported immediately as standard `.geojson` files for direct ingestion into national geospatial dashboards and emergency response platforms.
 
 ---

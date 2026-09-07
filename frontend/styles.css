@@ -451,6 +451,19 @@ html, body {
   line-height: 1.5;
 }
 
+.report-provenance, .report-method {
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--text-2);
+  line-height: 1.45;
+  font-family: var(--mono);
+}
+
+.report-provenance strong, .report-method strong {
+  color: var(--cyan);
+  font-weight: 500;
+}
+
 /* ─── Temporal Playback Bar ───────────────────────────────────── */
 .temporal-bar {
   display: none;
