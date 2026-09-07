@@ -55,13 +55,17 @@ class VercelPathFixMiddleware:
 app.add_middleware(VercelPathFixMiddleware)
 
 
+from fastapi import Request
+
+
 @app.api_route("/api/index.py", methods=["GET", "POST", "OPTIONS"], include_in_schema=False)
 @app.api_route("/api/index", methods=["GET", "POST", "OPTIONS"], include_in_schema=False)
-def vercel_entry_fallback():
+def vercel_entry_fallback(request: Request):
     """Fallback handler for direct access to the Vercel function script path."""
     return {
         "status": "ok",
-        "service": "SatQuery AI",
-        "problem_statement": "SIH26167",
-        "message": "SatQuery AI Vercel Serverless Function is active.",
+        "scope_path": request.scope.get("path"),
+        "raw_path": request.scope.get("raw_path", b"").decode("latin1", "ignore"),
+        "headers": {k: v for k, v in request.headers.items()},
+        "query_params": dict(request.query_params),
     }
