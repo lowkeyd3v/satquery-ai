@@ -530,16 +530,17 @@
     el.metricMode.textContent = "—";
     el.metricLatency.textContent = "—";
     el.metricStatus.textContent = "IDLE";
-    hideTemporalBar();
+    stopTemporalPlayback();
     showToast("Map view reset to Pan-India coverage.");
   }
 
   // ------------------------------------------------------------------
   // Temporal playback
   // ------------------------------------------------------------------
-  async function fetchAndSetupTemporal(scenarioId) {
+  async function fetchAndSetupTemporal(scenarioId = "flood") {
     try {
-      const res = await fetch(`${API_BASE}/api/v1/temporal/${scenarioId}`);
+      const activeId = scenarioId || "flood";
+      const res = await fetch(`${API_BASE}/api/v1/temporal/${activeId}`);
       if (!res.ok) return;
       const data = await res.json();
       temporalSnapshots = data.snapshots;
@@ -549,9 +550,14 @@
         const tag = document.getElementById(`ttag${i}`);
         if (tag) tag.textContent = snap.tag;
         const node = document.getElementById(`tnode${i}`);
-        if (node) node.onclick = () => { stopTemporalPlayback(); goToTemporalStep(i); };
+        if (node) {
+          node.onclick = () => {
+            stopTemporalPlayback();
+            goToTemporalStep(i);
+          };
+        }
       });
-      // Show at peak (step 2) — matches what was just rendered
+      // Show at peak (step 2)
       goToTemporalStep(2);
       showTemporalBar();
     } catch (e) {
@@ -561,14 +567,14 @@
 
   function showTemporalBar() {
     const bar = document.getElementById("temporalBar");
-    if (bar) bar.classList.add("visible");
+    if (bar) {
+      bar.classList.add("visible");
+      bar.style.display = "flex";
+    }
   }
 
   function hideTemporalBar() {
-    const bar = document.getElementById("temporalBar");
-    if (bar) bar.classList.remove("visible");
     stopTemporalPlayback();
-    temporalSnapshots = null;
   }
 
   function goToTemporalStep(step) {
@@ -578,7 +584,9 @@
 
     // Swap map layer
     if (activeGeoJsonLayer) { map.removeLayer(activeGeoJsonLayer); activeGeoJsonLayer = null; }
-    const baseColor = SCENARIO_COLORS[lastQueryResult?.scenario_id] || SCENARIO_COLORS.unknown;
+    const baseColor =
+      SCENARIO_COLORS[lastQueryResult?.scenario_id || "flood"] ||
+      SCENARIO_COLORS.flood;
     activeGeoJsonLayer = L.geoJSON(snap.geojson, {
       style: (feature) => ({
         color: feature.properties.color || baseColor,
@@ -709,8 +717,17 @@
   const temporalPlayBtn = document.getElementById("temporalPlayBtn");
   if (temporalPlayBtn) {
     temporalPlayBtn.addEventListener("click", () => {
-      if (temporalPlaying) stopTemporalPlayback();
-      else startTemporalPlayback();
+      if (temporalPlaying) {
+        stopTemporalPlayback();
+      } else {
+        if (!temporalSnapshots) {
+          fetchAndSetupTemporal(lastQueryResult?.scenario_id || "flood").then(() => {
+            startTemporalPlayback();
+          });
+        } else {
+          startTemporalPlayback();
+        }
+      }
     });
   }
 
@@ -726,4 +743,5 @@
   setStatus("busy", "Connecting to inference engine…");
   loadHistoryFromStorage();
   loadPresets();
+  fetchAndSetupTemporal("flood");
 })();

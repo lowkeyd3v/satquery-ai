@@ -193,16 +193,12 @@ def get_temporal_snapshots(scenario_id: str):
     except ImportError:
         from spatial_data import get_scenario_temporal, SCENARIO_REGISTRY
 
-    if scenario_id not in SCENARIO_REGISTRY:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Unknown scenario '{scenario_id}'. Valid: {sorted(SCENARIO_REGISTRY.keys())}",
-        )
+    active_id = scenario_id if scenario_id in SCENARIO_REGISTRY else "flood"
 
     return {
-        "scenario_id": scenario_id,
+        "scenario_id": active_id,
         "total_steps": 3,
-        "snapshots": get_scenario_temporal(scenario_id),
+        "snapshots": get_scenario_temporal(active_id),
     }
 
 
