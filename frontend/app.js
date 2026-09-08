@@ -66,6 +66,8 @@
     metricStatus: document.getElementById("metricStatus"),
     historyLog: document.getElementById("historyLog"),
     clearHistoryBtn: document.getElementById("clearHistoryBtn"),
+    themeToggleBtn: document.getElementById("themeToggleBtn"),
+    themeIcon: document.getElementById("themeIcon"),
     toast: document.getElementById("toast"),
   };
 
@@ -112,17 +114,37 @@
   }
 
   // ------------------------------------------------------------------
-  // Utility: toast notifications
+  // Theme Management (Light / Dark Mode)
   // ------------------------------------------------------------------
-  let toastTimer = null;
-  function showToast(message, isError = false) {
-    el.toast.textContent = message;
-    el.toast.classList.toggle("error", isError);
-    el.toast.classList.add("show");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => {
-      el.toast.classList.remove("show");
-    }, 3500);
+  function getPreferredTheme() {
+    try {
+      const stored = localStorage.getItem("satquery_theme");
+      if (stored === "light" || stored === "dark") return stored;
+    } catch (e) {}
+    return "dark"; // Default to aerospace dark mode
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    if (el.themeIcon) {
+      el.themeIcon.textContent = theme === "light" ? "🌙" : "☀️";
+    }
+    if (el.themeToggleBtn) {
+      el.themeToggleBtn.setAttribute(
+        "title",
+        theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"
+      );
+    }
+    try {
+      localStorage.setItem("satquery_theme", theme);
+    } catch (e) {}
+  }
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute("data-theme") || "dark";
+    const next = current === "light" ? "dark" : "light";
+    applyTheme(next);
+    showToast(`Switched to ${next === "light" ? "Light" : "Dark"} Mode`);
   }
 
   // ------------------------------------------------------------------
@@ -694,9 +716,15 @@
     });
   }
 
+  // Theme toggle button
+  if (el.themeToggleBtn) {
+    el.themeToggleBtn.addEventListener("click", toggleTheme);
+  }
+
   // ------------------------------------------------------------------
   // Initialization
   // ------------------------------------------------------------------
+  applyTheme(getPreferredTheme());
   setStatus("busy", "Connecting to inference engine…");
   loadHistoryFromStorage();
   loadPresets();
