@@ -541,7 +541,7 @@ html, body {
 
 /* ─── Temporal Playback Bar ───────────────────────────────────── */
 .temporal-bar {
-  display: flex !important;
+  display: none;
   position: absolute;
   bottom: 24px;
   left: 50%;
@@ -558,12 +558,11 @@ html, body {
   box-shadow: 0 8px 32px rgba(0,0,0,0.55);
   pointer-events: auto;
   user-select: none;
+  animation: fadeIn 0.25s ease;
 }
 
 .temporal-bar.visible {
   display: flex !important;
-  opacity: 1 !important;
-  visibility: visible !important;
 }
 
 @media (max-width: 600px) {

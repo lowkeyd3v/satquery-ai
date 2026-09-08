@@ -224,13 +224,26 @@
       const data = await res.json();
       lastQueryResult = data;
       handleQueryResponse(query, data);
-      fetchAndSetupTemporal(data.scenario_id);
+
+      // Only show temporal bar if a valid recognized scenario is detected with features
+      const validScenarios = ["flood", "urban", "water", "fire", "agriculture"];
+      if (
+        data.scenario_id &&
+        validScenarios.includes(data.scenario_id.toLowerCase()) &&
+        data.geojson?.features?.length > 0
+      ) {
+        fetchAndSetupTemporal(data.scenario_id);
+      } else {
+        hideTemporalBar();
+      }
+
       setStatus("online", "Inference engine online");
     } catch (err) {
       console.error("Query failed:", err);
       showToast(`Query failed: ${err.message}`, true);
       setStatus("error", "Last query failed");
       el.metricStatus.textContent = "Error";
+      hideTemporalBar();
     } finally {
       setBusy(false);
     }
@@ -530,7 +543,8 @@
     el.metricMode.textContent = "—";
     el.metricLatency.textContent = "—";
     el.metricStatus.textContent = "IDLE";
-    stopTemporalPlayback();
+    lastQueryResult = null;
+    hideTemporalBar();
     showToast("Map view reset to Pan-India coverage.");
   }
 
@@ -569,12 +583,16 @@
     const bar = document.getElementById("temporalBar");
     if (bar) {
       bar.classList.add("visible");
-      bar.style.display = "flex";
     }
   }
 
   function hideTemporalBar() {
+    const bar = document.getElementById("temporalBar");
+    if (bar) {
+      bar.classList.remove("visible");
+    }
     stopTemporalPlayback();
+    temporalSnapshots = null;
   }
 
   function goToTemporalStep(step) {
@@ -720,13 +738,7 @@
       if (temporalPlaying) {
         stopTemporalPlayback();
       } else {
-        if (!temporalSnapshots) {
-          fetchAndSetupTemporal(lastQueryResult?.scenario_id || "flood").then(() => {
-            startTemporalPlayback();
-          });
-        } else {
-          startTemporalPlayback();
-        }
+        startTemporalPlayback();
       }
     });
   }
@@ -743,5 +755,5 @@
   setStatus("busy", "Connecting to inference engine…");
   loadHistoryFromStorage();
   loadPresets();
-  fetchAndSetupTemporal("flood");
+  hideTemporalBar();
 })();
