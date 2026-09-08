@@ -546,16 +546,16 @@ html, body {
   bottom: 28px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 500;
+  z-index: 1000;
   align-items: center;
   gap: 14px;
-  background: rgba(13,13,17,0.94);
+  background: var(--bg-1);
   border: 1px solid var(--border-2);
   border-radius: var(--r-lg);
   padding: 11px 18px;
   backdrop-filter: blur(14px);
   min-width: 360px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
 }
 
 .temporal-bar.visible { display: flex; }
