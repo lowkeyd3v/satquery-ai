@@ -13,12 +13,23 @@
 (() => {
   "use strict";
 
-  // API base is same-origin since FastAPI serves this file too.
-  const API_BASE = window.location.origin;
+  // Resolve API Base intelligently:
+  // - If served from FastAPI (port 8000) or Vercel (https://...), use same origin.
+  // - If opened via file:// or another static port (5500, 3000, 5173), target local port 8000.
+  let API_BASE = window.location.origin;
+  if (
+    !API_BASE ||
+    API_BASE === "null" ||
+    window.location.protocol === "file:" ||
+    ["5500", "3000", "5173", "8080"].includes(window.location.port)
+  ) {
+    API_BASE = "http://127.0.0.1:8000";
+  }
+
   const ENDPOINTS = {
-    scenarios: `${API_BASE}/api/v1/scenarios`,
-    query: `${API_BASE}/api/v1/query`,
-    health: `${API_BASE}/api/v1/health`,
+    get scenarios() { return `${API_BASE}/api/v1/scenarios`; },
+    get query()     { return `${API_BASE}/api/v1/query`; },
+    get health()    { return `${API_BASE}/api/v1/health`; },
   };
 
   const SCENARIO_COLORS = {
@@ -152,7 +163,17 @@
   // ------------------------------------------------------------------
   async function loadPresets() {
     try {
-      const res = await fetch(ENDPOINTS.scenarios);
+      let res;
+      try {
+        res = await fetch(ENDPOINTS.scenarios);
+      } catch (localErr) {
+        if (API_BASE !== "https://satquery-ai-sage.vercel.app") {
+          API_BASE = "https://satquery-ai-sage.vercel.app";
+          res = await fetch(ENDPOINTS.scenarios);
+        } else {
+          throw localErr;
+        }
+      }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       renderPresetButtons(data.scenarios || []);
@@ -207,16 +228,32 @@
     el.metricStatus.textContent = "Segmenting…";
 
     try {
-      const res = await fetch(ENDPOINTS.query, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: query.trim(),
-          scenario_id: scenario_id,
-        }),
-      });
+      let res;
+      try {
+        res = await fetch(ENDPOINTS.query, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: query.trim(),
+            scenario_id: scenario_id,
+          }),
+        });
+      } catch (netErr) {
+        if (API_BASE !== "https://satquery-ai-sage.vercel.app") {
+          res = await fetch(`https://satquery-ai-sage.vercel.app/api/v1/query`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              query: query.trim(),
+              scenario_id: scenario_id,
+            }),
+          });
+        } else {
+          throw netErr;
+        }
+      }
 
-      if (!res.ok) {
+      if (!res || !res.ok) {
         const errBody = await res.json().catch(() => ({}));
         throw new Error(errBody.detail || `HTTP ${res.status}`);
       }
@@ -554,11 +591,24 @@
   async function fetchAndSetupTemporal(scenarioId = "flood") {
     try {
       const activeId = scenarioId || "flood";
-      const res = await fetch(`${API_BASE}/api/v1/temporal/${activeId}`);
-      if (!res.ok) return;
+      let res;
+      try {
+        res = await fetch(`${API_BASE}/api/v1/temporal/${activeId}`);
+      } catch (err) {
+        if (API_BASE !== "https://satquery-ai-sage.vercel.app") {
+          res = await fetch(`https://satquery-ai-sage.vercel.app/api/v1/temporal/${activeId}`);
+        } else {
+          throw err;
+        }
+      }
+      if (!res || !res.ok) return;
       const data = await res.json();
       temporalSnapshots = data.snapshots;
       stopTemporalPlayback();
+
+      // Show bar immediately with all styles applied
+      showTemporalBar();
+
       // Update node tags with real labels from API
       temporalSnapshots.forEach((snap, i) => {
         const tag = document.getElementById(`ttag${i}`);
@@ -573,7 +623,6 @@
       });
       // Show at peak (step 2)
       goToTemporalStep(2);
-      showTemporalBar();
     } catch (e) {
       console.warn("Temporal data unavailable:", e);
     }
@@ -583,6 +632,9 @@
     const bar = document.getElementById("temporalBar");
     if (bar) {
       bar.classList.add("visible");
+      bar.style.display = "flex";
+      bar.style.visibility = "visible";
+      bar.style.opacity = "1";
     }
   }
 
@@ -590,6 +642,7 @@
     const bar = document.getElementById("temporalBar");
     if (bar) {
       bar.classList.remove("visible");
+      bar.style.display = "none";
     }
     stopTemporalPlayback();
     temporalSnapshots = null;
