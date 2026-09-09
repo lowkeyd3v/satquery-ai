@@ -651,7 +651,7 @@
       steps: [
         { tag: "Detection", label: "Pre-Monsoon — Low Water",  date: "May 2025" },
         { tag: "Spread",    label: "Monsoon Inflow",           date: "Jul 2025" },
-        { tag: "Peak",      label: "Peak Lagoon Spread",       date: "Sep 2025" }
+        { tag: "Peak",      label: "Peak Water Spread",        date: "Sep 2025" }
       ]
     },
     fire: {
