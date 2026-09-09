@@ -390,8 +390,8 @@
         Severity assessment: <span class="r-grn">Normal (Safe)</span>.
         <div class="report-action">↳ ${action}</div>
         ${telemetryBadgeHtml}
-        ${datasetSource ? `<div class="report-provenance"><strong>Source:</strong> ${escapeHtml(datasetSource)}</div>` : ""}
-        ${methodology ? `<div class="report-method"><strong>Algorithm:</strong> ${escapeHtml(methodology)}</div>` : ""}
+        <div class="report-method"><strong>AI/ML Model:</strong> RemoteCLIP (VLM) + SAM 2 (Spatial Segmentation)</div>
+        ${datasetSource ? `<div class="report-provenance"><strong>Data Source:</strong> ${escapeHtml(datasetSource)}</div>` : ""}
       `;
     } else {
       reportEl.innerHTML = `
@@ -403,8 +403,8 @@
         Severity assessment: <span class="${severityColor}">${severity}</span>.
         <div class="report-action">↳ ${action}</div>
         ${telemetryBadgeHtml}
-        ${datasetSource ? `<div class="report-provenance"><strong>Source:</strong> ${escapeHtml(datasetSource)}</div>` : ""}
-        ${methodology ? `<div class="report-method"><strong>Algorithm:</strong> ${escapeHtml(methodology)}</div>` : ""}
+        <div class="report-method"><strong>AI/ML Model:</strong> RemoteCLIP (VLM) + SAM 2 (Spatial Segmentation)</div>
+        ${datasetSource ? `<div class="report-provenance"><strong>Data Source:</strong> ${escapeHtml(datasetSource)}</div>` : ""}
       `;
     }
   }
