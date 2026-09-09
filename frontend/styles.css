@@ -527,35 +527,186 @@ html, body {
   line-height: 1.5;
 }
 
-.report-provenance, .report-method {
-  margin-top: 6px;
-  font-size: 10px;
-  color: var(--text-2);
-  line-height: 1.45;
-  font-family: var(--mono);
-}
-
-.report-provenance strong, .report-method strong {
-  color: var(--cyan);
-  font-weight: 500;
-}
-
-.report-granule, .report-hydro {
-  margin-top: 6px;
-  font-size: 10px;
-  color: var(--text-2);
-  line-height: 1.45;
-  font-family: var(--mono);
-}
-.report-granule code {
-  color: var(--cyan);
+.report-source-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px 12px;
   background: var(--bg-3);
-  padding: 1px 4px;
-  border-radius: var(--r-sm);
-}
-.report-granule strong, .report-hydro strong {
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-md);
   color: var(--cyan);
+  font-family: var(--sans);
+  font-size: 11px;
   font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.report-source-btn:hover {
+  background: var(--cyan-dim);
+  border-color: var(--cyan);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(34, 211, 238, 0.15);
+}
+
+.report-source-btn:active {
+  transform: translateY(0);
+}
+
+.report-source-btn svg {
+  flex-shrink: 0;
+  stroke: var(--cyan);
+}
+
+/* ================= DATA SOURCE & MODEL DETAILS MODAL ================= */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-card {
+  background: var(--bg-1);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-lg);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--border-1);
+  width: 100%;
+  max-width: 490px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalScaleIn {
+  from {
+    transform: scale(0.96) translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-1);
+  background: var(--bg-2);
+}
+
+.modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  background: var(--cyan-dim);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  color: var(--cyan);
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+}
+
+.modal-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-0);
+  margin: 0;
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-2);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--r-sm);
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.modal-close-btn:hover {
+  background: var(--bg-3);
+  color: var(--text-0);
+}
+
+.modal-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.source-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 9px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+}
+
+.source-item-label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.source-item-value {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-0);
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.source-item-value.highlight-cyan {
+  color: var(--cyan);
+  font-weight: 600;
+}
+
+.source-item-value code {
+  background: var(--bg-4);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--cyan);
 }
 
 /* ─── NASA GIBS Daily Satellite Overlay Control ───────────────────────── */

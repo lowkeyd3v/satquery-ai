@@ -80,6 +80,9 @@
     themeToggleBtn: document.getElementById("themeToggleBtn"),
     themeIcon: document.getElementById("themeIcon"),
     toast: document.getElementById("toast"),
+    sourceModal: document.getElementById("sourceModal"),
+    modalCloseBtn: document.getElementById("modalCloseBtn"),
+    modalBody: document.getElementById("modalBody"),
   };
 
   // ------------------------------------------------------------------
@@ -347,11 +350,103 @@
   }
 
   // ------------------------------------------------------------------
+  // Data Source & AI Model Details Modal
+  // ------------------------------------------------------------------
+  let activeModalData = null;
+
+  function openSourceModal() {
+    if (!activeModalData || !el.modalBody) return;
+    const meta = activeModalData.geojson?.metadata || {};
+    const features = activeModalData.geojson?.features || [];
+    const p = features[0]?.properties || {};
+    const hydro = meta.hydrology_telemetry;
+    const granule = meta.granule_id || p.granule_id || "Sentinel-2 Daily";
+    const cloudCover = meta.cloud_cover_percent != null ? `${meta.cloud_cover_percent}%` : "—";
+    const sunElev = meta.sun_elevation_deg != null ? `${meta.sun_elevation_deg}°` : "—";
+    const acqDate = meta.acquisition_date ? meta.acquisition_date.replace("T", " ").replace("Z", " UTC") : "—";
+    const dataset = meta.dataset_source || p.dataset || "Copernicus Sentinel-2 Level-2A & GloFAS River Telemetry";
+    const method = meta.methodology || p.methodology || "STAC Satellite Query + Dynamic Remote Sensing Validation";
+    const sensor = p.sensor || meta.sensor || "Sentinel-2 MSI (10m) / ESA Copernicus STAC";
+    const gsd = p.resolution || "10m GSD Multi-Spectral";
+    const region = meta.region || "Monitored Region";
+
+    let hydroHtml = "";
+    if (hydro) {
+      hydroHtml = `
+        <div class="source-item">
+          <span class="source-item-label">GloFAS River Discharge Telemetry</span>
+          <span class="source-item-value highlight-cyan">${hydro.river_discharge_m3s} m³/s (${escapeHtml(hydro.flood_trend)} trend)</span>
+          <span style="font-size: 10px; color: var(--text-2); margin-top: 2px;">Station Network: ${escapeHtml(hydro.network || "Copernicus Emergency Management (GloFAS)")}</span>
+        </div>
+      `;
+    }
+
+    el.modalBody.innerHTML = `
+      <div class="source-item">
+        <span class="source-item-label">AI / ML Model Architecture</span>
+        <span class="source-item-value highlight-cyan">RemoteCLIP (VLM) + SAM 2 (Spatial Segmentation)</span>
+        <span style="font-size: 10.5px; color: var(--text-1); margin-top: 3px; line-height: 1.45;">Vision-Language Model multimodal cross-attention prompt encoder coupled with Meta's Segment Anything Model 2 for zero-shot raster polygon vectorization.</span>
+      </div>
+
+      <div class="source-item">
+        <span class="source-item-label">Primary Satellite & Ground Data</span>
+        <span class="source-item-value">${escapeHtml(dataset)}</span>
+      </div>
+
+      <div class="source-item">
+        <span class="source-item-label">Target Region & Boundary</span>
+        <span class="source-item-value">${escapeHtml(region)}</span>
+      </div>
+
+      <div class="source-item">
+        <span class="source-item-label">Sentinel-2 STAC Granule Identifier</span>
+        <span class="source-item-value"><code>${escapeHtml(granule)}</code></span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div class="source-item">
+          <span class="source-item-label">Scene Cloud Cover</span>
+          <span class="source-item-value">${cloudCover}</span>
+        </div>
+        <div class="source-item">
+          <span class="source-item-label">Sun Elevation Angle</span>
+          <span class="source-item-value">${sunElev}</span>
+        </div>
+      </div>
+
+      <div class="source-item">
+        <span class="source-item-label">Sensor & Spatial Resolution</span>
+        <span class="source-item-value">${escapeHtml(sensor)} (${escapeHtml(gsd)})</span>
+      </div>
+
+      ${hydroHtml}
+
+      <div class="source-item">
+        <span class="source-item-label">Acquisition Timestamp</span>
+        <span class="source-item-value">${escapeHtml(acqDate)}</span>
+      </div>
+
+      <div class="source-item">
+        <span class="source-item-label">Verification Methodology</span>
+        <span class="source-item-value">${escapeHtml(method)}</span>
+      </div>
+    `;
+
+    if (el.sourceModal) el.sourceModal.classList.add("open");
+  }
+
+  function closeSourceModal() {
+    if (el.sourceModal) el.sourceModal.classList.remove("open");
+  }
+
+  // ------------------------------------------------------------------
   // Analysis Report Generator
   // ------------------------------------------------------------------
   function generateAnalysisReport(data) {
     const features = data.geojson.features || [];
     if (!features.length) return;
+
+    activeModalData = data;
 
     const totalArea = features
       .reduce((s, f) => s + (f.properties.area_sqkm || 0), 0)
@@ -365,42 +460,31 @@
     const action = escapeHtml(p.action || "Standby for field assessment.");
     const region = escapeHtml(data.geojson.metadata?.region || "the monitored zone");
     const confidence = Math.round(data.query_confidence * 100);
-    const datasetSource = data.geojson.metadata?.dataset_source || p.dataset || "";
-    const methodology = data.geojson.metadata?.methodology || p.methodology || "";
 
     const severityColor =
       p.severity === "Critical" ? "r-red"
       : p.severity === "High"   ? "r-amb"
       : "r-grn";
 
-    const meta = data.geojson.metadata || {};
-    const granule = meta.granule_id;
-    const cloudCover = meta.cloud_cover_percent != null ? `${meta.cloud_cover_percent}%` : null;
-    const hydro = meta.hydrology_telemetry;
-
-    let telemetryBadgeHtml = "";
-    if (granule) {
-      telemetryBadgeHtml += `<div class="report-granule"><strong>STAC Granule:</strong> <code>${escapeHtml(granule)}</code>${cloudCover ? ` (Cloud: ${cloudCover})` : ""}</div>`;
-    }
-    if (hydro) {
-      telemetryBadgeHtml += `<div class="report-hydro"><strong>GloFAS River Discharge:</strong> <span class="r-hi">${hydro.river_discharge_m3s} m³/s</span> (${escapeHtml(hydro.flood_trend)} trend)</div>`;
-    }
-
     const isSafeFloodCheck = (p.flood_active === false) || (p.severity === "Normal" && data.matched_label.toLowerCase().includes("flood"));
+
+    const sourceBtnHtml = `
+      <button type="button" class="report-source-btn" id="openSourceBtn" title="View Data Source, Satellite Granule & AI Model Details">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>View Source & AI Model Details ↗</span>
+      </button>
+    `;
 
     const reportEl = document.getElementById("reportText");
 
     if (isSafeFloodCheck) {
       reportEl.innerHTML = `
         <span class="r-grn">No active flood inundation detected</span> across ${region}.
-        ${sensor} imagery at <span class="r-hi">${resolution}</span> and Copernicus GloFAS hydrology telemetry confirm
-        stable seasonal river flow (<span class="r-hi">${hydro?.river_discharge_m3s || "1537"} m³/s</span>)
-        with <span class="r-hi">${confidence}%</span> confidence.
+        ${sensor} imagery at <span class="r-hi">${resolution}</span> confirms
+        stable seasonal river flow with <span class="r-hi">${confidence}%</span> confidence.
         Severity assessment: <span class="r-grn">Normal (Safe)</span>.
         <div class="report-action">↳ ${action}</div>
-        ${telemetryBadgeHtml}
-        <div class="report-method"><strong>AI/ML Model:</strong> RemoteCLIP (VLM) + SAM 2 (Spatial Segmentation)</div>
-        ${datasetSource ? `<div class="report-provenance"><strong>Data Source:</strong> ${escapeHtml(datasetSource)}</div>` : ""}
+        ${sourceBtnHtml}
       `;
     } else if (count > 1 && (data.scenario_id === "water" || label.toLowerCase().includes("water"))) {
       const waterListHtml = features.map(f => {
@@ -418,9 +502,7 @@
           ${waterListHtml}
         </ul>
         <div class="report-action">↳ ${action}</div>
-        ${telemetryBadgeHtml}
-        <div class="report-method"><strong>AI/ML Model:</strong> RemoteCLIP (VLM) + SAM 2 (Spatial Segmentation)</div>
-        ${datasetSource ? `<div class="report-provenance"><strong>Data Source:</strong> ${escapeHtml(datasetSource)}</div>` : ""}
+        ${sourceBtnHtml}
       `;
     } else {
       const headingLabel = (count === 1 && (data.scenario_id === "water" || label.toLowerCase().includes("water")))
@@ -434,11 +516,12 @@
         <span class="r-hi">${confidence}%</span> query confidence.
         Severity assessment: <span class="${severityColor}">${severity}</span>.
         <div class="report-action">↳ ${action}</div>
-        ${telemetryBadgeHtml}
-        <div class="report-method"><strong>AI/ML Model:</strong> RemoteCLIP (VLM) + SAM 2 (Spatial Segmentation)</div>
-        ${datasetSource ? `<div class="report-provenance"><strong>Data Source:</strong> ${escapeHtml(datasetSource)}</div>` : ""}
+        ${sourceBtnHtml}
       `;
     }
+
+    const btn = document.getElementById("openSourceBtn");
+    if (btn) btn.addEventListener("click", openSourceModal);
   }
 
   function renderGeoJsonLayer(geojson, scenarioId) {
@@ -1049,6 +1132,19 @@
       }
     });
   }
+
+  // Data Source Modal close listeners
+  if (el.modalCloseBtn) {
+    el.modalCloseBtn.addEventListener("click", closeSourceModal);
+  }
+  if (el.sourceModal) {
+    el.sourceModal.addEventListener("click", (e) => {
+      if (e.target === el.sourceModal) closeSourceModal();
+    });
+  }
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeSourceModal();
+  });
 
   // ------------------------------------------------------------------
   // Initialization
