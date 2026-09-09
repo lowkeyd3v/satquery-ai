@@ -539,6 +539,69 @@ html, body {
   font-weight: 500;
 }
 
+.report-granule, .report-hydro {
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--text-2);
+  line-height: 1.45;
+  font-family: var(--mono);
+}
+.report-granule code {
+  color: var(--cyan);
+  background: var(--bg-3);
+  padding: 1px 4px;
+  border-radius: var(--r-sm);
+}
+.report-granule strong, .report-hydro strong {
+  color: var(--cyan);
+  font-weight: 500;
+}
+
+/* ─── NASA GIBS Daily Satellite Overlay Control ───────────────────────── */
+.map-floating-bar {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gibs-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--bg-1);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-md);
+  padding: 6px 12px;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-0);
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.gibs-toggle-pill:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+.gibs-toggle-pill input {
+  cursor: pointer;
+  accent-color: var(--cyan);
+  width: 14px;
+  height: 14px;
+}
+.gibs-toggle-pill.active {
+  background: var(--cyan-dim);
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
 /* ─── Temporal Playback Bar ───────────────────────────────────── */
 .temporal-bar {
   display: none;

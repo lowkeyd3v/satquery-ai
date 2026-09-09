@@ -117,6 +117,30 @@ def get_scenarios():
     return {"scenarios": engine.get_presets()}
 
 
+@app.get("/api/v1/search/location", tags=["location"])
+def search_location(q: str):
+    """
+    Geocode and retrieve bounding box & live Sentinel-2 metadata for any
+    city or place worldwide using OpenStreetMap Nominatim and Element84 STAC.
+    """
+    if not q or len(q.strip()) < 2:
+        raise HTTPException(status_code=400, detail="Query string too short.")
+    try:
+        from dynamic_resolver import resolve_location, fetch_sentinel_stac
+    except ImportError:
+        from backend.dynamic_resolver import resolve_location, fetch_sentinel_stac
+
+    loc = resolve_location(q)
+    if not loc:
+        raise HTTPException(status_code=404, detail=f"Location '{q}' not found.")
+
+    stac = fetch_sentinel_stac(loc["bbox"])
+    return {
+        "location": loc,
+        "stac": stac,
+    }
+
+
 @app.post("/api/v1/query", response_model=QueryResponse, tags=["inference"])
 def submit_query(request: QueryRequest):
     """

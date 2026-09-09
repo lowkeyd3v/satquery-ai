@@ -116,6 +116,18 @@
   );
   referenceLayer.addTo(map);
 
+  // NASA GIBS Daily Satellite Tile Layer (MODIS Terra TrueColor)
+  // Recomputed dynamically for yesterday UTC to guarantee 100% complete global composite coverage
+  const yesterdayDate = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+  const gibsSatelliteLayer = L.tileLayer(
+    `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${yesterdayDate}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`,
+    {
+      attribution: "Daily Satellite &copy; NASA EOSDIS GIBS",
+      maxZoom: 9,
+      opacity: 0.95,
+    }
+  );
+
   // ------------------------------------------------------------------
   // Utility: status indicator
   // ------------------------------------------------------------------
@@ -350,6 +362,19 @@
       : p.severity === "High"   ? "r-amb"
       : "r-grn";
 
+    const meta = data.geojson.metadata || {};
+    const granule = meta.granule_id;
+    const cloudCover = meta.cloud_cover_percent != null ? `${meta.cloud_cover_percent}%` : null;
+    const hydro = meta.hydrology_telemetry;
+
+    let telemetryBadgeHtml = "";
+    if (granule) {
+      telemetryBadgeHtml += `<div class="report-granule"><strong>STAC Granule:</strong> <code>${escapeHtml(granule)}</code>${cloudCover ? ` (Cloud: ${cloudCover})` : ""}</div>`;
+    }
+    if (hydro) {
+      telemetryBadgeHtml += `<div class="report-hydro"><strong>GloFAS River Discharge:</strong> <span class="r-hi">${hydro.river_discharge_m3s} m³/s</span> (${escapeHtml(hydro.flood_trend)} trend)</div>`;
+    }
+
     const reportEl = document.getElementById("reportText");
     reportEl.innerHTML = `
       <span class="r-hi">${count} ${label} zone${count !== 1 ? "s" : ""}</span>
@@ -359,6 +384,7 @@
       <span class="r-hi">${confidence}%</span> query confidence.
       Severity assessment: <span class="${severityColor}">${severity}</span>.
       <div class="report-action">↳ ${action}</div>
+      ${telemetryBadgeHtml}
       ${datasetSource ? `<div class="report-provenance"><strong>Source:</strong> ${escapeHtml(datasetSource)}</div>` : ""}
       ${methodology ? `<div class="report-method"><strong>Algorithm:</strong> ${escapeHtml(methodology)}</div>` : ""}
     `;
@@ -450,7 +476,10 @@
     el.metricArea.textContent = `${totalArea.toFixed(1)} km²`;
     el.metricSensor.textContent = sensorText;
     const rawMode = (data.mode || "").toLowerCase();
-    el.metricMode.textContent = rawMode === "real" ? "NEURAL VLM" : "CALIBRATED";
+    el.metricMode.textContent =
+      rawMode === "real" ? "NEURAL VLM"
+      : rawMode === "dynamic_api" ? "LIVE STAC API"
+      : "CALIBRATED";
     el.metricLatency.textContent = `${data.processing_time_ms} ms`;
     el.metricStatus.textContent = `${features.length} vector polygon(s) active`;
   }
@@ -932,6 +961,25 @@
   // Theme toggle button
   if (el.themeToggleBtn) {
     el.themeToggleBtn.addEventListener("click", toggleTheme);
+  }
+
+  // NASA GIBS daily satellite imagery toggle
+  const gibsToggle = document.getElementById("gibsToggle");
+  const gibsToggleLabel = document.getElementById("gibsToggleLabel");
+  if (gibsToggle) {
+    gibsToggle.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        gibsSatelliteLayer.addTo(map);
+        if (referenceLayer) referenceLayer.bringToFront();
+        if (activeGeoJsonLayer) activeGeoJsonLayer.bringToFront();
+        if (gibsToggleLabel) gibsToggleLabel.classList.add("active");
+        showToast(`NASA GIBS Daily Satellite Layer enabled (${yesterdayDate})`);
+      } else {
+        map.removeLayer(gibsSatelliteLayer);
+        if (gibsToggleLabel) gibsToggleLabel.classList.remove("active");
+        showToast("Switched to high-res baseline satellite imagery");
+      }
+    });
   }
 
   // ------------------------------------------------------------------

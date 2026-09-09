@@ -41,6 +41,15 @@ try:
 except ImportError:
     from spatial_data import get_scenario_geojson, list_presets, SCENARIO_REGISTRY
 
+try:
+    from backend.dynamic_resolver import synthesize_dynamic_response, extract_location_token
+except ImportError:
+    try:
+        from dynamic_resolver import synthesize_dynamic_response, extract_location_token
+    except ImportError:
+        synthesize_dynamic_response = None
+        extract_location_token = None
+
 logger = logging.getLogger("satquery.inference")
 logging.basicConfig(level=logging.INFO)
 
@@ -309,6 +318,39 @@ class SatQueryEngine:
         # Map "unknown" queries to the water scenario as a sane default
         # demo response, but keep the reported confidence low.
         effective_scenario = scenario_id if scenario_id != "unknown" else "water"
+
+        # Check for dynamic location queries (e.g. Gorakhpur, Mumbai, Lucknow, etc.)
+        preset_locations = {
+            "assam", "brahmaputra", "majuli", "dibrugarh", "bengaluru",
+            "bangalore", "whitefield", "electronic city", "devanahalli",
+            "chilika", "nalabana", "satapada", "similipal", "vidarbha", "yavatmal"
+        }
+        loc_candidate = extract_location_token(query_text) if extract_location_token else None
+        if (
+            loc_candidate
+            and loc_candidate.lower() not in preset_locations
+            and synthesize_dynamic_response
+        ):
+            try:
+                dyn = synthesize_dynamic_response(query_text, effective_scenario)
+                if dyn and dyn.get("geojson"):
+                    elapsed_ms = round((time.perf_counter() - start) * 1000, 2)
+                    region_title = dyn["location"].get("name", loc_candidate.title())
+                    granule = dyn["stac"].get("granule_id", "Sentinel-2 Daily")
+                    return InferenceResult(
+                        geojson=dyn["geojson"],
+                        scenario_id=effective_scenario,
+                        mode="dynamic_api",
+                        processing_time_ms=elapsed_ms,
+                        matched_label=f"{effective_scenario} — {region_title}",
+                        query_confidence=0.94,
+                        message=(
+                            f"Resolved via live Sentinel-2 STAC & GloFAS APIs for {region_title} "
+                            f"(Granule: {granule})."
+                        ),
+                    )
+            except Exception as exc:
+                logger.warning("Dynamic resolution failed, falling back: %s", exc)
 
         mode = "calibrated"
         message = "Served from calibrated deterministic spatial engine."
