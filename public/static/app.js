@@ -125,6 +125,21 @@
   }
 
   // ------------------------------------------------------------------
+  // Utility: toast notifications
+  // ------------------------------------------------------------------
+  let toastTimer = null;
+  function showToast(message, isError = false) {
+    if (!el.toast) return;
+    el.toast.textContent = message;
+    el.toast.classList.toggle("error", isError);
+    el.toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      if (el.toast) el.toast.classList.remove("show");
+    }, 3500);
+  }
+
+  // ------------------------------------------------------------------
   // Theme Management (Light / Dark Mode)
   // ------------------------------------------------------------------
   function getPreferredTheme() {
