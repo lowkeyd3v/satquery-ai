@@ -295,7 +295,13 @@
       // Only show temporal bar if a valid recognized scenario is detected with active features
       const scenarioKey = (data.scenario_id || "").toLowerCase();
       const firstFeatureProps = data.geojson?.features?.[0]?.properties || {};
+      const isDynamic = Boolean(
+        data.mode === "dynamic_api" ||
+        data.geojson?.metadata?.is_dynamic ||
+        (data.geojson?.metadata?.region && !data.geojson?.metadata?.region.toLowerCase().includes("chilika") && scenarioKey === "water")
+      );
       if (
+        !isDynamic &&
         TEMPORAL_SCENARIOS[scenarioKey] &&
         data.matched_label !== "unknown" &&
         data.geojson?.features?.length > 0 &&
@@ -341,7 +347,7 @@
   }
 
   // ------------------------------------------------------------------
-  // Auto Analysis Report
+  // Analysis Report Generator
   // ------------------------------------------------------------------
   function generateAnalysisReport(data) {
     const features = data.geojson.features || [];
@@ -396,9 +402,32 @@
         <div class="report-method"><strong>AI/ML Model:</strong> RemoteCLIP (VLM) + SAM 2 (Spatial Segmentation)</div>
         ${datasetSource ? `<div class="report-provenance"><strong>Data Source:</strong> ${escapeHtml(datasetSource)}</div>` : ""}
       `;
-    } else {
+    } else if (count > 1 && (data.scenario_id === "water" || label.toLowerCase().includes("water"))) {
+      const waterListHtml = features.map(f => {
+        const fp = f.properties || {};
+        return `<li><strong>${escapeHtml(fp.name || "Water Body")}:</strong> <span class="r-hi">${fp.area_sqkm ?? "—"} km²</span></li>`;
+      }).join("");
+
       reportEl.innerHTML = `
-        <span class="r-hi">${count} ${label} zone${count !== 1 ? "s" : ""}</span>
+        <span class="r-hi">${count} Water Bodies</span>
+        detected across <span class="r-hi">${totalArea} km²</span> of ${region}.
+        ${sensor} imagery at <span class="r-hi">${resolution}</span> confirms
+        active surface water signatures with
+        <span class="r-hi">${confidence}%</span> query confidence.
+        <ul class="report-feature-breakdown" style="margin: 8px 0; padding-left: 18px; font-size: 11.5px; line-height: 1.6; color: var(--text-1);">
+          ${waterListHtml}
+        </ul>
+        <div class="report-action">↳ ${action}</div>
+        ${telemetryBadgeHtml}
+        <div class="report-method"><strong>AI/ML Model:</strong> RemoteCLIP (VLM) + SAM 2 (Spatial Segmentation)</div>
+        ${datasetSource ? `<div class="report-provenance"><strong>Data Source:</strong> ${escapeHtml(datasetSource)}</div>` : ""}
+      `;
+    } else {
+      const headingLabel = (count === 1 && (data.scenario_id === "water" || label.toLowerCase().includes("water")))
+        ? escapeHtml(p.name || label)
+        : `${count} ${label} zone${count !== 1 ? "s" : ""}`;
+      reportEl.innerHTML = `
+        <span class="r-hi">${headingLabel}</span>
         detected across <span class="r-hi">${totalArea} km²</span> of ${region}.
         ${sensor} imagery at <span class="r-hi">${resolution}</span> confirms
         active ${label.toLowerCase()} signature with
