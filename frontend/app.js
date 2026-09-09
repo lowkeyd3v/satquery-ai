@@ -263,13 +263,13 @@
       handleQueryResponse(query, data);
 
       // Only show temporal bar if a valid recognized scenario is detected with features
-      const validScenarios = ["flood", "urban", "water", "fire", "agriculture"];
+      const scenarioKey = (data.scenario_id || "").toLowerCase();
       if (
-        data.scenario_id &&
-        validScenarios.includes(data.scenario_id.toLowerCase()) &&
+        TEMPORAL_SCENARIOS[scenarioKey] &&
+        data.matched_label !== "unknown" &&
         data.geojson?.features?.length > 0
       ) {
-        fetchAndSetupTemporal(data.scenario_id);
+        fetchAndSetupTemporal(data.scenario_id, data.geojson);
       } else {
         hideTemporalBar();
       }
@@ -586,45 +586,163 @@
   }
 
   // ------------------------------------------------------------------
+  // Temporal Scenarios Metadata & Client-side Snapshot Generator
+  // ------------------------------------------------------------------
+  const TEMPORAL_SCENARIOS = {
+    flood: {
+      steps: [
+        { tag: "Detection", label: "Initial Breach Detected", date: "Aug 12, 2025" },
+        { tag: "Spread",    label: "Inundation Spreading",     date: "Aug 16, 2025" },
+        { tag: "Peak",      label: "Peak Flood Extent",        date: "Aug 20, 2025" }
+      ]
+    },
+    urban: {
+      steps: [
+        { tag: "Detection", label: "New Development Detected", date: "Jan 2025" },
+        { tag: "Spread",    label: "Construction Phase 2",     date: "Apr 2025" },
+        { tag: "Peak",      label: "Maximum Sprawl Extent",    date: "Jul 2025" }
+      ]
+    },
+    water: {
+      steps: [
+        { tag: "Detection", label: "Pre-Monsoon — Low Water",  date: "May 2025" },
+        { tag: "Spread",    label: "Monsoon Inflow",           date: "Jul 2025" },
+        { tag: "Peak",      label: "Peak Lagoon Spread",       date: "Sep 2025" }
+      ]
+    },
+    fire: {
+      steps: [
+        { tag: "Detection", label: "Active Hotspot — Day 1",   date: "Feb 14, 2025" },
+        { tag: "Spread",    label: "Burn Scar Expanding",      date: "Feb 18, 2025" },
+        { tag: "Peak",      label: "Maximum Fire Perimeter",   date: "Feb 22, 2025" }
+      ]
+    },
+    agriculture: {
+      steps: [
+        { tag: "Detection", label: "Early Stress Signals",     date: "Jun 2025" },
+        { tag: "Spread",    label: "Drought Spreading",        date: "Jul 2025" },
+        { tag: "Peak",      label: "Critical Failure Zone",    date: "Aug 2025" }
+      ]
+    }
+  };
+
+  function scalePolygonCoordinates(coords, factor) {
+    if (!coords || !coords.length) return coords;
+    const ring = coords[0];
+    const n = Math.max(ring.length - 1, 1);
+    let cx = 0, cy = 0;
+    for (let i = 0; i < n; i++) {
+      cx += ring[i][0];
+      cy += ring[i][1];
+    }
+    cx /= n;
+    cy /= n;
+
+    return coords.map(r =>
+      r.map(pt => [
+        Number((cx + (pt[0] - cx) * factor).toFixed(4)),
+        Number((cy + (pt[1] - cy) * factor).toFixed(4))
+      ])
+    );
+  }
+
+  function generateClientSnapshots(scenarioKey, geojson) {
+    const meta = TEMPORAL_SCENARIOS[scenarioKey]?.steps || TEMPORAL_SCENARIOS.flood.steps;
+    const allFeatures = geojson?.features || [];
+    const configs = [
+      { scale: 0.55, count: 1 },
+      { scale: 0.78, count: Math.max(1, allFeatures.length - 1) },
+      { scale: 1.00, count: allFeatures.length }
+    ];
+
+    return configs.map((cfg, i) => {
+      const subset = allFeatures.slice(0, cfg.count);
+      const scaledFeatures = subset.map(feat => {
+        const f = JSON.parse(JSON.stringify(feat));
+        if (f.geometry && f.geometry.coordinates) {
+          f.geometry.coordinates = scalePolygonCoordinates(f.geometry.coordinates, cfg.scale);
+        }
+        const origArea = feat.properties?.area_sqkm || 0;
+        if (f.properties) {
+          f.properties.area_sqkm = Number((origArea * cfg.scale * cfg.scale).toFixed(1));
+        }
+        return f;
+      });
+
+      return {
+        step: i,
+        tag: meta[i].tag,
+        label: meta[i].label,
+        date: meta[i].date,
+        geojson: {
+          type: "FeatureCollection",
+          features: scaledFeatures
+        }
+      };
+    });
+  }
+
+  // ------------------------------------------------------------------
   // Temporal playback
   // ------------------------------------------------------------------
-  async function fetchAndSetupTemporal(scenarioId = "flood") {
+  async function fetchAndSetupTemporal(scenarioId = "flood", fallbackGeojson = null) {
+    const activeId = (scenarioId || "flood").toLowerCase();
+    const meta = TEMPORAL_SCENARIOS[activeId]?.steps || TEMPORAL_SCENARIOS.flood.steps;
+
+    // 1. Immediately display the bar and populate node tags (zero lag!)
+    showTemporalBar();
+    stopTemporalPlayback();
+
+    meta.forEach((stepMeta, i) => {
+      const tag = document.getElementById(`ttag${i}`);
+      if (tag) tag.textContent = stepMeta.tag;
+      const node = document.getElementById(`tnode${i}`);
+      if (node) {
+        node.onclick = () => {
+          stopTemporalPlayback();
+          goToTemporalStep(i);
+        };
+      }
+    });
+
+    const stepLabel = document.getElementById("temporalStepLabel");
+    if (stepLabel) stepLabel.textContent = meta[2].label;
+    const dateLabel = document.getElementById("temporalDate");
+    if (dateLabel) dateLabel.textContent = meta[2].date;
+
+    for (let i = 0; i < 3; i++) {
+      document.getElementById(`tnode${i}`)?.classList.toggle("active", true);
+    }
+    const tline0 = document.getElementById("tline0");
+    if (tline0) tline0.style.width = "100%";
+    const tline1 = document.getElementById("tline1");
+    if (tline1) tline1.style.width = "100%";
+
+    // 2. Try fetching server-side snapshots, fallback to client-side generator
     try {
-      const activeId = scenarioId || "flood";
       let res;
       try {
         res = await fetch(`${API_BASE}/api/v1/temporal/${activeId}`);
       } catch (err) {
         if (API_BASE !== "https://satquery-ai-sage.vercel.app") {
           res = await fetch(`https://satquery-ai-sage.vercel.app/api/v1/temporal/${activeId}`);
-        } else {
-          throw err;
         }
       }
-      if (!res || !res.ok) return;
-      const data = await res.json();
-      temporalSnapshots = data.snapshots;
-      stopTemporalPlayback();
-
-      // Show bar immediately with all styles applied
-      showTemporalBar();
-
-      // Update node tags with real labels from API
-      temporalSnapshots.forEach((snap, i) => {
-        const tag = document.getElementById(`ttag${i}`);
-        if (tag) tag.textContent = snap.tag;
-        const node = document.getElementById(`tnode${i}`);
-        if (node) {
-          node.onclick = () => {
-            stopTemporalPlayback();
-            goToTemporalStep(i);
-          };
+      if (res && res.ok) {
+        const data = await res.json();
+        if (data.snapshots && data.snapshots.length === 3) {
+          temporalSnapshots = data.snapshots;
+          goToTemporalStep(2);
+          return;
         }
-      });
-      // Show at peak (step 2)
-      goToTemporalStep(2);
+      }
     } catch (e) {
-      console.warn("Temporal data unavailable:", e);
+      console.warn("Using client-generated temporal snapshots:", e);
+    }
+
+    if (fallbackGeojson) {
+      temporalSnapshots = generateClientSnapshots(activeId, fallbackGeojson);
+      goToTemporalStep(2);
     }
   }
 
