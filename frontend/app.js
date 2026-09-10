@@ -34,6 +34,7 @@
 
   const SCENARIO_COLORS = {
     flood: "#ff1744",
+    earthquake: "#e91e63",
     landslide: "#ff5722",
     urban: "#ff9100",
     water: "#00e676",
@@ -482,12 +483,45 @@
 
     const reportEl = document.getElementById("reportText");
 
+    if (data.scenario_id === "unknown" || data.mode === "unsupported") {
+      reportEl.innerHTML = `
+        <div style="padding: 4px 0;">
+          <span class="r-amb" style="font-weight: 600; font-size: 13px;">No matching remote-sensing workflow</span>
+          <p style="margin: 8px 0; font-size: 12px; color: var(--text-2); line-height: 1.5;">
+            ${escapeHtml(data.message || "Query could not be mapped to an Earth Observation pipeline.")}
+          </p>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; padding: 6px 8px; background: rgba(255,255,255,0.03); border-radius: 4px; border: 1px solid var(--border);">
+            Supported domains: <strong>Floods, Earthquakes, Landslides, Wildfires, Urban Sprawl, Drought, Water Bodies</strong>.
+          </div>
+        </div>
+      `;
+      return;
+    }
+
     if (isSafeFloodCheck) {
       reportEl.innerHTML = `
         <span class="r-grn">No active flood inundation detected</span> across ${region}.
         ${sensor} imagery at <span class="r-hi">${resolution}</span> confirms
         stable seasonal river flow with <span class="r-hi">${confidence}%</span> confidence.
         Severity assessment: <span class="r-grn">Normal (Safe)</span>.
+        <div class="report-action">↳ ${action}</div>
+        ${sourceBtnHtml}
+      `;
+    } else if (data.scenario_id === "earthquake") {
+      const eqListHtml = features.slice(0, 5).map(f => {
+        const fp = f.properties || {};
+        return `<li><strong>${escapeHtml(fp.label || "Earthquake")}:</strong> ${escapeHtml(fp.place || "Regional")} <span class="r-amb">(Depth: ${fp.depth_km ?? "—"} km)</span></li>`;
+      }).join("");
+
+      reportEl.innerHTML = `
+        <span class="r-hi">${count} Seismic Event${count !== 1 ? "s" : ""}</span>
+        detected across ${region}.
+        ${sensor} confirms active tectonic rupture signatures with
+        <span class="r-hi">${confidence}%</span> query confidence.
+        Severity rating: <span class="${severityColor}">${severity}</span>.
+        <ul class="report-feature-breakdown" style="margin: 8px 0; padding-left: 18px; font-size: 11.5px; line-height: 1.6; color: var(--text-1);">
+          ${eqListHtml}
+        </ul>
         <div class="report-action">↳ ${action}</div>
         ${sourceBtnHtml}
       `;

@@ -66,6 +66,12 @@ SCENARIO_KEYWORDS = {
         "river burst", "tsunami", "water level rise", "assam", "brahmaputra",
         "majuli", "dibrugarh", "disaster",
     ],
+    "earthquake": [
+        "earthquake", "earthquakes", "seismic", "tremor", "tremors", "quake",
+        "quakes", "fault", "fault line", "epicenter", "hypocenter", "richter",
+        "tectonic", "aftershock", "seismology", "crustal deformation",
+        "seismograph",
+    ],
     "landslide": [
         "landslide", "mudslide", "rockfall", "debris flow", "slope failure",
         "scarp", "avalanche", "wayanad", "meppadi", "chooralmala", "mundakkai",
@@ -320,9 +326,43 @@ class SatQueryEngine:
         start = time.perf_counter()
         scenario_id, query_confidence = self.classify_query(query_text)
 
-        # Map "unknown" queries to the water scenario as a sane default
-        # demo response, but keep the reported confidence low.
-        effective_scenario = scenario_id if scenario_id != "unknown" else "water"
+        effective_scenario = scenario_id
+
+        # If query cannot be mapped to any remote-sensing domain, return clean unsupported guidance
+        if effective_scenario == "unknown":
+            elapsed_ms = round((time.perf_counter() - start) * 1000, 2)
+            loc_candidate = extract_location_token(query_text) if extract_location_token else None
+            return InferenceResult(
+                geojson={
+                    "type": "FeatureCollection",
+                    "name": "unsupported_query_response",
+                    "features": [],
+                    "metadata": {
+                        "region": loc_candidate.title() if loc_candidate else "Unknown Region",
+                        "scenario": "unknown",
+                        "status": "unsupported",
+                        "supported_domains": [
+                            "Floods & Riverine Inundation",
+                            "Earthquakes & Seismic Activity",
+                            "Landslides & Debris Flow",
+                            "Urban Sprawl & Settlement Growth",
+                            "Forest Wildfires & Burn Scars",
+                            "Agricultural Drought & Moisture Stress",
+                            "Lakes, Reservoirs & Water Bodies",
+                        ],
+                    },
+                },
+                scenario_id="unknown",
+                mode="unsupported",
+                processing_time_ms=elapsed_ms,
+                matched_label="Unsupported Query",
+                query_confidence=0.0,
+                message=(
+                    f"No matching satellite remote-sensing workflow for '{query_text}'. "
+                    "SatQuery AI analyzes: Floods, Earthquakes, Landslides, Wildfires, "
+                    "Urban Sprawl, Crop Drought, and Water Bodies."
+                ),
+            )
 
         # Only route to calibrated preset if query matches exact scenario AND location
         is_preset_match = (
@@ -345,17 +385,25 @@ class SatQueryEngine:
                     elapsed_ms = round((time.perf_counter() - start) * 1000, 2)
                     region_title = dyn["location"].get("name", loc_candidate.title())
                     granule = dyn["stac"].get("granule_id", "Sentinel-2 Daily")
-                    label_prefix = "Water Bodies" if effective_scenario == "water" else effective_scenario.title()
+                    label_prefix = (
+                        "Earthquakes" if effective_scenario == "earthquake"
+                        else "Water Bodies" if effective_scenario == "water"
+                        else effective_scenario.title()
+                    )
+                    source_tag = (
+                        "USGS Live Seismographic Network & Copernicus InSAR"
+                        if effective_scenario == "earthquake"
+                        else f"Sentinel-2 STAC & GloFAS APIs (Granule: {granule})"
+                    )
                     return InferenceResult(
                         geojson=dyn["geojson"],
                         scenario_id=effective_scenario,
                         mode="dynamic_api",
                         processing_time_ms=elapsed_ms,
                         matched_label=f"{label_prefix} — {region_title}",
-                        query_confidence=0.94,
+                        query_confidence=0.95,
                         message=(
-                            f"Resolved via live Sentinel-2 STAC & GloFAS APIs for {region_title} "
-                            f"(Granule: {granule})."
+                            f"Resolved via live {source_tag} for {region_title}."
                         ),
                     )
             except Exception as exc:
