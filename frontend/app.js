@@ -115,19 +115,23 @@
       subdomains: "abcd",
       maxZoom: 19,
       opacity: 0.85,
+      zIndex: 500,
     }
   );
   referenceLayer.addTo(map);
 
   // NASA GIBS Daily Satellite Tile Layer (MODIS Terra TrueColor)
-  // Recomputed dynamically for yesterday UTC to guarantee 100% complete global composite coverage
-  const yesterdayDate = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+  // Uses default/default WMTS endpoint for automatic latest available global daily composite.
+  // maxNativeZoom: 9 ensures Leaflet overzooms smoothly up to level 19 without HTTP 400 errors.
   const gibsSatelliteLayer = L.tileLayer(
-    `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${yesterdayDate}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`,
+    "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/default/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg",
     {
       attribution: "Daily Satellite &copy; NASA EOSDIS GIBS",
-      maxZoom: 9,
+      minZoom: 1,
+      maxNativeZoom: 9,
+      maxZoom: 19,
       opacity: 0.95,
+      zIndex: 200,
     }
   );
 
@@ -1120,13 +1124,17 @@
   if (gibsToggle) {
     gibsToggle.addEventListener("change", (e) => {
       if (e.target.checked) {
-        gibsSatelliteLayer.addTo(map);
+        if (!map.hasLayer(gibsSatelliteLayer)) {
+          gibsSatelliteLayer.addTo(map);
+        }
         if (referenceLayer) referenceLayer.bringToFront();
         if (activeGeoJsonLayer) activeGeoJsonLayer.bringToFront();
         if (gibsToggleLabel) gibsToggleLabel.classList.add("active");
-        showToast(`NASA GIBS Daily Satellite Layer enabled (${yesterdayDate})`);
+        showToast("NASA GIBS Daily True-Color Imagery enabled (Live NASA EOSDIS)");
       } else {
-        map.removeLayer(gibsSatelliteLayer);
+        if (map.hasLayer(gibsSatelliteLayer)) {
+          map.removeLayer(gibsSatelliteLayer);
+        }
         if (gibsToggleLabel) gibsToggleLabel.classList.remove("active");
         showToast("Switched to high-res baseline satellite imagery");
       }
