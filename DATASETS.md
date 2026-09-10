@@ -30,7 +30,7 @@ The table below outlines the authentic satellite mission passes, ground truth re
 |---|---|---|---|---|---|
 | **1** | **Assam Brahmaputra Floods** | Sentinel-1A C-SAR (10m) / RISAT-1A | Copernicus Emergency Management Service (EMS) | `EMSR586` / `S1A_IW_GRDH_1SDV_20240816` | Bitemporal SAR Backscatter Ratio ($\sigma^0\ \text{VV/VH}$) + Otsu Thresholding |
 | **2** | **Bengaluru Urban Sprawl** | Cartosat-3 Optical (0.28m PAN / 1.12m MX) | European Commission GHSL + OSM Landuse | `CARTOSAT3_PANMX_20240412_BLR_004` | Normalized Difference Built-Up Index ($\text{NDBI}$) + Impervious Surface Fraction ($\text{ISF}$) |
-| **3** | **Chilika Lagoon Water Bodies** | Resourcesat-2A LISS-IV (5.8m) / Sentinel-2 MSI (10m) | JRC Global Surface Water (GSW) / Ramsar #229 | `RS2A_LISS4_20240510_CHILIKA_R229` | Modified Normalized Difference Water Index ($\text{MNDWI} > 0.28$) + Otsu Classification |
+| **3** | **Wayanad Landslides & Debris Flow** | ISRO Cartosat-3 (0.28m PAN) / Sentinel-1A SAR (10m) | ISRO NRSC Disaster Management Support (DMS) / GSI | `ISRO_CART3_20240731_WAYANAD_L3` | Bitemporal Optical Difference + InSAR Coherence Tracking & DEM Slope Gradient (>34°) |
 | **4** | **Similipal Forest Wildfire** | NASA VIIRS Thermal IR (375m) / Sentinel-2 MSI (20m) | NASA FIRMS Active Fire Archive & FSI Van Agni | `NASA_VIIRS_VNP14IMGTDL_NRT_20240218` | Thermal Anomaly ($4\mu\text{m} / 11\mu\text{m}$) + Differenced Normalized Burn Ratio ($\text{dNBR} > 0.44$) |
 | **5** | **Vidarbha Agricultural Drought** | Resourcesat-2A AWiFS (56m) / MODIS (250m) | NASA LP DAAC MOD13A2 & ISRO Bhuvan PMFBY | `MOD13A2_061_20240728_VIDARBHA_VCI` | Vegetation Condition Index ($\text{VCI} < 25\%$) + Normalized Difference Moisture Index ($\text{NDMI}$) |
 
@@ -59,13 +59,14 @@ The table below outlines the authentic satellite mission passes, ground truth re
 
 ---
 
-### Scenario 3: Coastal Wetland & Open Water Dynamics — Chilika Lake, Odisha
-* **Ground-Truth Benchmark**: Joint Research Centre (JRC) Global Surface Water Dataset (GSW Nature publication, Pekel et al.) and Ramsar Information Sheet (RIS) for Site #229 (Chilika Lake).
-* **Sensor Baseline**: ISRO Resourcesat-2A Linear Imaging Self-Scanning Sensor (LISS-IV, $5.8\text{m}$) fused with Sentinel-2 Multi-Spectral Instrument (MSI, $10\text{m}$).
+### Scenario 3: Catastrophic Landslides & Debris Avalanche — Wayanad, Kerala
+* **Ground-Truth Benchmark**: ISRO National Remote Sensing Centre (NRSC) Disaster Management Support (DMS) Rapid Satellite Damage Assessment and Geological Survey of India (GSI) Post-Disaster Geotechnical Report (July 2024 Chooralmala / Meppadi Catastrophic Debris Flow).
+* **Sensor Baseline**: ISRO Cartosat-3 sub-meter panchromatic ($0.28\text{m}$) and 4-band multispectral ($1.12\text{m}$) coupled with Copernicus Sentinel-1A Synthetic Aperture Radar (C-SAR) differential interferometry ($\text{DInSAR}$).
+* **Why Sub-Meter Optical & InSAR?**: Steep mountainous terrain in the Western Ghats requires high-resolution geometric fidelity to trace narrow headscarps, boulder runout tracks, and severed bridge infrastructure, while InSAR coherence loss accurately delineates ground surface rupture even beneath residual cloud cover.
 * **Physics / Algorithm**:
-  $$\text{MNDWI} = \frac{\text{Green} - \text{SWIR}}{\text{Green} + \text{SWIR}}$$
-  Modified Normalized Difference Water Index ($\text{MNDWI}$) suppresses false positives from built-up land and enhances open water spread, even in shallow littoral lagoons with varying salinity gradients.
-* **Key Geographies**: Central brackish lagoon water spread (`19.72°N, 85.34°E`), Nalabana Island migratory bird sanctuary (`19.73°N, 85.36°E`), and Satapada estuarine sea-mouth barrier bar (`19.59°N, 85.47°E`).
+  $$\Delta \text{Reflectance} = R_{\text{post}} - R_{\text{pre}}, \quad \gamma_{\text{coherence}} = \frac{|\langle s_1 s_2^* \rangle|}{\sqrt{\langle |s_1|^2 \rangle \langle |s_2|^2 \rangle}}$$
+  Coupled with Copernicus DEM slope gradient thresholding ($>34^\circ$), severe stripping of dense vegetation cover and topsoil exposes raw gneissic bedrock, yielding a pronounced drop in NDVI ($\Delta \text{NDVI} < -0.45$) and complete radar interferometric decorrelation ($\gamma < 0.25$).
+* **Key Geographies**: Punchirimattam peak crown failure scarp (`11.548°N, 76.148°E`, elevation 1,550m), Iruvaiphuzha river debris flow erosion chute (`11.538°N, 76.138°E`), and Chooralmala / Mundakkai township deposition fan (`11.528°N, 76.124°E`).
 
 ---
 

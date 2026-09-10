@@ -280,6 +280,123 @@ BENGALURU_URBAN_GEOJSON = {
 
 
 # ---------------------------------------------------------------------------
+# SCENARIO: Landslides & Debris Flow — Wayanad, Kerala
+# Ground Truth Reference: ISRO NRSC Disaster Management Support (DMS)
+# & Copernicus Sentinel-1A DInSAR Coherence / Cartosat-3 (0.28m PAN)
+# ---------------------------------------------------------------------------
+WAYANAD_LANDSLIDE_GEOJSON = {
+    "type": "FeatureCollection",
+    "name": "wayanad_landslide_debris_flow",
+    "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}},
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "landslide_001",
+                "label": "Crown Failure Scarp & Initiation Zone",
+                "confidence": 0.94,
+                "area_sqkm": 1.85,
+                "severity": "Critical Scarp",
+                "sensor": "Cartosat-3 / Sentinel-1A DInSAR",
+                "resolution": "0.28m PAN / 10m InSAR",
+                "dataset": "ISRO NRSC Disaster Management Support (DMS) / Cartosat-3",
+                "methodology": "Bitemporal Optical Differential Change Detection + Slope Gradient Analysis (>34°)",
+                "scene_id": "ISRO_CART3_20240731_WAYANAD_CROWN",
+                "description": "Main crown failure scarp at Punchirimattam ridge (1,550m elevation). High-intensity precipitation triggered deep-seated translational debris slip.",
+                "action": "Establish automated ground displacement sensors & radar corner reflectors to monitor secondary regressive scarp collapse.",
+                "color": "#d50000",
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [76.1432, 11.5475],
+                        [76.1485, 11.5518],
+                        [76.1530, 11.5492],
+                        [76.1502, 11.5435],
+                        [76.1448, 11.5428],
+                        [76.1432, 11.5475],
+                    ]
+                ],
+            },
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "landslide_002",
+                "label": "Debris Avalanche Runout Chute",
+                "confidence": 0.91,
+                "area_sqkm": 3.42,
+                "severity": "High Velocity Flow",
+                "sensor": "Sentinel-2 MSI / Cartosat-3",
+                "resolution": "0.28m Pan-Sharpened / 10m MSI",
+                "dataset": "ISRO NRSC & Geological Survey of India (GSI)",
+                "methodology": "Post-Event Multi-Spectral Soil Stripping Index & High-Resolution Ortho-Difference",
+                "scene_id": "S2A_MSIL2A_20240801_WAYANAD_CHUTE",
+                "description": "High-velocity debris flow channel carrying boulders, saturated regolith, and uprooted forest cover along the steep Iruvaiphuzha drainage corridor.",
+                "action": "Clear high-risk drainage choke-points and enforce 200m buffer zoning along primary river ravine.",
+                "color": "#ff5722",
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [76.1315, 11.5360],
+                        [76.1385, 11.5445],
+                        [76.1445, 11.5435],
+                        [76.1390, 11.5350],
+                        [76.1345, 11.5315],
+                        [76.1315, 11.5360],
+                    ]
+                ],
+            },
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "landslide_003",
+                "label": "Debris Deposition & Inundation Fan",
+                "confidence": 0.89,
+                "area_sqkm": 2.15,
+                "severity": "Severe Deposition",
+                "sensor": "Cartosat-3 / RISAT-1A SAR",
+                "resolution": "0.28m PAN / 1m FRS SAR",
+                "dataset": "ISRO NRSC Flood & Landslide Damage Assessment Team",
+                "methodology": "Co-Seismic / Co-Event SAR Coherence Loss & Deep Learning Spatial Damage Delineation",
+                "scene_id": "ISRO_CART3_20240731_CHOORALMALA_FAN",
+                "description": "Alluvial fan debris deposition zone impacting Chooralmala township, Mundakkai, and downstream settlement bridges.",
+                "action": "Prioritize search and recovery corridors; conduct structural integrity assessment of surviving riverside bridges.",
+                "color": "#ff9100",
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [76.1185, 11.5270],
+                        [76.1265, 11.5345],
+                        [76.1325, 11.5320],
+                        [76.1280, 11.5245],
+                        [76.1215, 11.5230],
+                        [76.1185, 11.5270],
+                    ]
+                ],
+            },
+        },
+    ],
+    "metadata": {
+        "region": "Wayanad, Kerala, India",
+        "sensor": "ISRO Cartosat-3 / Sentinel-1A SAR",
+        "scenario": "landslide",
+        "center": [11.536, 76.135],
+        "zoom": 13,
+        "dataset_source": "ISRO NRSC Disaster Management Support (DMS) & Copernicus Sentinel-1 DInSAR",
+        "methodology": "Bitemporal Optical Difference + InSAR Coherence Tracking & DEM Slope Gradient (>34°)",
+        "citation": "ISRO NRSC Wayanad Landslide Rapid Assessment 2024 / GSI Geotechnical Report",
+    },
+}
+
+
+# ---------------------------------------------------------------------------
 # SCENARIO 3: Water Bodies — Chilika Lake, Odisha
 # Ground Truth Reference: JRC Global Surface Water (GSW) / Ramsar Site #229
 # & ISRO Resourcesat-2A LISS-IV / Sentinel-2 MSI
@@ -579,6 +696,7 @@ VIDARBHA_AGRI_GEOJSON = {
 # ---------------------------------------------------------------------------
 SCENARIO_REGISTRY = {
     "flood": ASSAM_FLOOD_GEOJSON,
+    "landslide": WAYANAD_LANDSLIDE_GEOJSON,
     "urban": BENGALURU_URBAN_GEOJSON,
     "water": CHILIKA_WATER_GEOJSON,
     "fire": SIMILIPAL_FIRE_GEOJSON,
@@ -600,6 +718,16 @@ SCENARIO_PRESETS = [
         "dataset_source": "Copernicus EMS EMSR586 & Sentinel-1A SAR",
     },
     {
+        "id": "landslide",
+        "name": "Detect Landslides",
+        "sample_query": "Identify landslide scars and debris flow runout in Wayanad",
+        "description": "Maps catastrophic slope failure scars, debris avalanche tracks, and deposition fans using change detection.",
+        "region": "Wayanad, Kerala",
+        "color": "#ff5722",
+        "sensor": "ISRO Cartosat-3 / Sentinel-1 SAR",
+        "dataset_source": "ISRO NRSC Cartosat-3 & Copernicus Sentinel-1 DInSAR",
+    },
+    {
         "id": "urban",
         "name": "Track Urban Sprawl",
         "sample_query": "Show urban expansion and built-up development",
@@ -608,16 +736,6 @@ SCENARIO_PRESETS = [
         "color": "#ff9100",
         "sensor": "Cartosat-3 High-Res Optical",
         "dataset_source": "EC GHSL Settlement Grid & Cartosat-3",
-    },
-    {
-        "id": "water",
-        "name": "Monitor Water Bodies",
-        "sample_query": "Segment all major lakes and water spread extent",
-        "description": "Delineates lakes, coastal lagoons, and wetland water-spread boundaries.",
-        "region": "Chilika Lake, Odisha",
-        "color": "#00e676",
-        "sensor": "Resourcesat-2A LISS-IV / Sentinel-2",
-        "dataset_source": "JRC Global Surface Water & Ramsar #229",
     },
     {
         "id": "fire",

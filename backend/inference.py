@@ -66,6 +66,11 @@ SCENARIO_KEYWORDS = {
         "river burst", "tsunami", "water level rise", "assam", "brahmaputra",
         "majuli", "dibrugarh", "disaster",
     ],
+    "landslide": [
+        "landslide", "mudslide", "rockfall", "debris flow", "slope failure",
+        "scarp", "avalanche", "wayanad", "meppadi", "chooralmala", "mundakkai",
+        "western ghats", "geohazard", "ground slip", "soil slide", "hill slope",
+    ],
     "urban": [
         "urban", "sprawl", "expansion", "built-up", "built up", "construction",
         "city growth", "development", "infrastructure", "settlement", "building",
@@ -322,6 +327,7 @@ class SatQueryEngine:
         # Only route to calibrated preset if query matches exact scenario AND location
         is_preset_match = (
             (effective_scenario == "flood" and any(k in query_text.lower() for k in ["assam", "brahmaputra", "majuli", "dibrugarh"]))
+            or (effective_scenario == "landslide" and any(k in query_text.lower() for k in ["wayanad", "meppadi", "chooralmala", "mundakkai", "landslide"]))
             or (effective_scenario == "urban" and any(k in query_text.lower() for k in ["bengaluru", "bangalore", "whitefield", "electronic city"]))
             or (effective_scenario == "water" and any(k in query_text.lower() for k in ["chilika", "nalabana", "satapada"]))
             or (effective_scenario == "fire" and "similipal" in query_text.lower())

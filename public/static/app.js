@@ -34,6 +34,7 @@
 
   const SCENARIO_COLORS = {
     flood: "#ff1744",
+    landslide: "#ff5722",
     urban: "#ff9100",
     water: "#00e676",
     fire: "#e040fb",
@@ -793,6 +794,13 @@
         { tag: "Detection", label: "Initial Breach Detected", date: "Aug 12, 2025" },
         { tag: "Spread",    label: "Inundation Spreading",     date: "Aug 16, 2025" },
         { tag: "Peak",      label: "Peak Flood Extent",        date: "Aug 20, 2025" }
+      ]
+    },
+    landslide: {
+      steps: [
+        { tag: "Pre-Event", label: "Slope Creep & Saturation",  date: "Jul 28, 2024" },
+        { tag: "Failure",   label: "Crown Scarp & Debris Surge", date: "Jul 30, 2024" },
+        { tag: "Deposit",   label: "Runout & Deposition Fan",    date: "Aug 02, 2024" }
       ]
     },
     urban: {
