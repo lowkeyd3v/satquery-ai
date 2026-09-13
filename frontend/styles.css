@@ -672,6 +672,70 @@ html, body {
   stroke: var(--cyan);
 }
 
+.report-dossier-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 12px;
+  min-height: 35px;
+  box-sizing: border-box;
+  background: var(--bg-3);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-md);
+  color: var(--amber);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.report-dossier-btn:hover {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: var(--amber);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.16);
+}
+
+.report-dossier-btn:active {
+  transform: translateY(0);
+}
+
+.report-dossier-btn svg {
+  flex-shrink: 0;
+  stroke: var(--amber);
+}
+
+.report-header-dossier-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: var(--r-sm);
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: var(--amber);
+  font-size: 9.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.report-header-dossier-btn:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: var(--amber);
+  transform: translateY(-0.5px);
+}
+
+.report-header-dossier-btn svg {
+  flex-shrink: 0;
+  stroke: var(--amber);
+}
+
 /* ─── Agentic Execution Trace Accordion ──────────────────────── */
 .agentic-trace-wrap {
   margin-top: 10px;
@@ -1316,3 +1380,567 @@ html, body {
 .btn.primary.has-image::before {
   content: "📡 ";
 }
+
+/* ==========================================================================
+   TACTICAL INTELLIGENCE DOSSIER MODAL & STYLING
+   ========================================================================== */
+
+.dossier-card {
+  max-width: 860px;
+  width: 95%;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-1);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-lg);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8), 0 0 0 1px var(--border-1);
+}
+
+.dossier-badge {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--amber);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.dossier-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dossier-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--r-sm);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.dossier-action-btn.primary {
+  background: var(--amber);
+  color: #0b0f19;
+  border: 1px solid #d97706;
+}
+
+.dossier-action-btn.primary:hover {
+  background: #f59e0b;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.4);
+  transform: translateY(-1px);
+}
+
+.dossier-action-btn.secondary {
+  background: var(--bg-3);
+  color: var(--cyan);
+  border: 1px solid var(--border-2);
+}
+
+.dossier-action-btn.secondary:hover {
+  background: var(--cyan-dim);
+  border-color: var(--cyan);
+  transform: translateY(-1px);
+}
+
+.dossier-scroll-wrap {
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--bg-0);
+  flex: 1;
+}
+
+/* ─── The Official SITREP Sheet ─── */
+.dossier-sheet {
+  background: var(--bg-1);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-md);
+  padding: 24px 28px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  color: var(--text-0);
+  font-family: var(--sans);
+}
+
+.sitrep-top-banner {
+  border-bottom: 2px solid var(--border-2);
+  padding-bottom: 14px;
+}
+
+.sitrep-org-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.sitrep-org-title h4 {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-2);
+  text-transform: uppercase;
+  margin: 0 0 4px 0;
+}
+
+.sitrep-org-title h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-0);
+  margin: 0 0 4px 0;
+  letter-spacing: -0.01em;
+}
+
+.sitrep-subhead {
+  font-size: 11px;
+  color: var(--cyan);
+  font-family: var(--mono);
+}
+
+.sitrep-stamp-box {
+  text-align: right;
+  border: 1.5px solid var(--amber);
+  padding: 6px 12px;
+  border-radius: var(--r-sm);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.sitrep-stamp-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--amber);
+  letter-spacing: 0.08em;
+}
+
+.sitrep-stamp-id {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-0);
+  margin-top: 2px;
+}
+
+.sitrep-meta-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
+  margin-top: 12px;
+}
+
+.sitrep-meta-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sitrep-meta-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-transform: uppercase;
+}
+
+.sitrep-meta-val {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-0);
+}
+
+/* ─── Executive Assessment Section ─── */
+.sitrep-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--cyan);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-1);
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+}
+
+.sitrep-directive-box {
+  background: rgba(245, 158, 11, 0.08);
+  border-left: 3.5px solid var(--amber);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: 10px 14px;
+}
+
+.sitrep-directive-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--amber);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.sitrep-directive-text {
+  font-size: 12px;
+  color: var(--text-0);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ─── Telemetry Grid ─── */
+.sitrep-grid-2x4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.sitrep-stat-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sitrep-stat-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-transform: uppercase;
+}
+
+.sitrep-stat-value {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-0);
+}
+
+.sitrep-stat-value.highlight {
+  color: var(--cyan);
+}
+
+/* ─── Vector Delineation Table ─── */
+.sitrep-table-wrap {
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.sitrep-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.sitrep-table th {
+  background: var(--bg-2);
+  color: var(--text-2);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: left;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border-1);
+}
+
+.sitrep-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border-0);
+  color: var(--text-1);
+  font-family: var(--mono);
+}
+
+.sitrep-table tr:last-child td {
+  border-bottom: none;
+}
+
+.sitrep-table tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+/* ─── Audit Trail Summary ─── */
+.sitrep-audit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sitrep-audit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: var(--bg-2);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-0);
+  font-size: 11px;
+}
+
+.sitrep-audit-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: var(--text-0);
+}
+
+.sitrep-audit-icon {
+  color: var(--cyan);
+  font-size: 11px;
+}
+
+.sitrep-audit-val {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-2);
+}
+
+/* ─── Sign-off Footer ─── */
+.sitrep-footer {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1.5px solid var(--border-2);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-size: 10px;
+  color: var(--text-2);
+}
+
+.sitrep-sign-box {
+  border-top: 1px solid var(--border-2);
+  padding-top: 4px;
+  min-width: 180px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-2);
+}
+
+/* ─── Status Badges ─── */
+.sitrep-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.sitrep-badge.critical {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--red);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.sitrep-badge.high {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--amber);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.sitrep-badge.moderate,
+.sitrep-badge.normal {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--green);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+/* ==========================================================================
+   @MEDIA PRINT — HIGH-CONTRAST A4 VECTOR PDF EXPORT
+   ========================================================================== */
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 12mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+    font-size: 9pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide entire web UI chrome */
+  .topbar,
+  .sidebar,
+  .map-wrapper,
+  .no-print,
+  .modal-backdrop:not(.dossier-backdrop),
+  .dossier-modal-header,
+  .toast,
+  #sourceModal {
+    display: none !important;
+  }
+
+  .dossier-backdrop {
+    position: static !important;
+    display: block !important;
+    background: none !important;
+    padding: 0 !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    overflow: visible !important;
+    inset: auto !important;
+  }
+
+  .dossier-card {
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+    overflow: visible !important;
+    animation: none !important;
+  }
+
+  .dossier-scroll-wrap {
+    overflow: visible !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  .dossier-sheet {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1.5px solid #0f172a !important;
+    box-shadow: none !important;
+    padding: 14px 18px !important;
+    border-radius: 0 !important;
+    gap: 12px !important;
+  }
+
+  /* Color resets for crisp black & white laser printing */
+  .dossier-sheet * {
+    color: #0f172a !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  .sitrep-top-banner {
+    border-bottom: 2px solid #0f172a !important;
+  }
+
+  .sitrep-org-title h4 {
+    color: #475569 !important;
+  }
+
+  .sitrep-subhead {
+    color: #0369a1 !important;
+  }
+
+  .sitrep-stamp-box {
+    border: 1.5px solid #0f172a !important;
+    background: #f8fafc !important;
+  }
+
+  .sitrep-stamp-title {
+    color: #0f172a !important;
+  }
+
+  .sitrep-meta-bar {
+    background: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+
+  .sitrep-meta-label {
+    color: #64748b !important;
+  }
+
+  .sitrep-section-title {
+    color: #0f172a !important;
+    border-bottom: 1.5px solid #cbd5e1 !important;
+    font-size: 10pt !important;
+  }
+
+  .sitrep-directive-box {
+    background: #f8fafc !important;
+    border-left: 4px solid #0f172a !important;
+    border-top: 1px solid #e2e8f0 !important;
+    border-right: 1px solid #e2e8f0 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+
+  .sitrep-directive-title {
+    color: #0f172a !important;
+  }
+
+  .sitrep-stat-card {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+
+  .sitrep-stat-label {
+    color: #64748b !important;
+  }
+
+  .sitrep-table th {
+    background: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+  }
+
+  .sitrep-table td {
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+  }
+
+  .sitrep-audit-row {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+
+  .sitrep-badge.critical {
+    background: #fee2e2 !important;
+    border: 1.5px solid #dc2626 !important;
+    color: #991b1b !important;
+  }
+
+  .sitrep-badge.high {
+    background: #fef3c7 !important;
+    border: 1.5px solid #d97706 !important;
+    color: #92400e !important;
+  }
+
+  .sitrep-badge.moderate,
+  .sitrep-badge.normal {
+    background: #dcfce7 !important;
+    border: 1.5px solid #16a34a !important;
+    color: #166534 !important;
+  }
+
+  .sitrep-footer {
+    border-top: 1.5px solid #0f172a !important;
+  }
+
+  .sitrep-sign-box {
+    border-top: 1px solid #0f172a !important;
+  }
+}
+

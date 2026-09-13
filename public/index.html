@@ -7,7 +7,7 @@
 
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23070709'/><circle cx='16' cy='16' r='9' fill='none' stroke='%2322d3ee' stroke-width='2'/><circle cx='16' cy='16' r='3' fill='%2322d3ee'/><line x1='16' y1='4' x2='16' y2='9' stroke='%2322d3ee' stroke-width='1.5'/><line x1='16' y1='23' x2='16' y2='28' stroke='%2322d3ee' stroke-width='1.5'/><line x1='4' y1='16' x2='9' y2='16' stroke='%2322d3ee' stroke-width='1.5'/><line x1='23' y1='16' x2='28' y2='16' stroke='%2322d3ee' stroke-width='1.5'/></svg>" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="/static/styles.css?v=4.5" />
+  <link rel="stylesheet" href="/static/styles.css?v=4.6" />
 </head>
 <body>
 
@@ -143,7 +143,13 @@
       </div>
 
       <div class="sidebar-section report-section" id="reportSection">
-        <span class="section-label">Analysis Report</span>
+        <div class="section-header">
+          <span class="section-label">Analysis Report</span>
+          <button type="button" class="report-header-dossier-btn" id="headerDossierBtn" title="Export Tactical PDF Dossier" style="display: none;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span>PDF Dossier</span>
+          </button>
+        </div>
         <div class="report-panel" id="reportPanel">
           <p class="report-text" id="reportText">Run a query to generate an analysis report.</p>
         </div>
@@ -219,7 +225,35 @@
     </div>
   </div>
 
+  <!-- Tactical Intelligence Dossier Modal (Print & PDF Export) -->
+  <div class="modal-backdrop dossier-backdrop" id="dossierModal" role="dialog" aria-modal="true" aria-labelledby="dossierTitle">
+    <div class="modal-card dossier-card">
+      <div class="modal-header dossier-modal-header no-print">
+        <div class="modal-title-wrap">
+          <span class="modal-badge dossier-badge">RESTRICTED // SITREP</span>
+          <h3 class="modal-title" id="dossierTitle">Tactical Disaster Intelligence Dossier</h3>
+        </div>
+        <div class="dossier-header-actions">
+          <button type="button" class="dossier-action-btn primary" id="printDossierBtn" title="Print or Save as Vector PDF">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            <span>Print / Save PDF</span>
+          </button>
+          <button type="button" class="dossier-action-btn secondary" id="downloadGeoJsonBtn" title="Download Raw GeoJSON Telemetry">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>GeoJSON</span>
+          </button>
+          <button type="button" class="modal-close-btn" id="dossierCloseBtn" aria-label="Close dossier modal">✕</button>
+        </div>
+      </div>
+      <div class="dossier-scroll-wrap">
+        <div class="dossier-sheet" id="dossierSheet">
+          <!-- Dynamically populated situational report -->
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="/static/app.js?v=4.5"></script>
+  <script src="/static/app.js?v=4.6"></script>
 </body>
 </html>
