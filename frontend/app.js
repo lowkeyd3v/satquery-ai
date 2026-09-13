@@ -75,7 +75,13 @@
     exportGeoJsonBtn: document.getElementById("exportGeoJsonBtn"),
     copyJsonBtn: document.getElementById("copyJsonBtn"),
     resetMapBtn: document.getElementById("resetMapBtn"),
-    presetButtons: document.getElementById("presetButtons"),
+    presetSelect: document.getElementById("presetSelect"),
+    presetCountBadge: document.getElementById("presetCountBadge"),
+    presetActiveCard: document.getElementById("presetActiveCard"),
+    presetCardDot: document.getElementById("presetCardDot"),
+    presetCardTitle: document.getElementById("presetCardTitle"),
+    presetCardRegion: document.getElementById("presetCardRegion"),
+    presetCardDesc: document.getElementById("presetCardDesc"),
     metricLabel: document.getElementById("metricLabel"),
     metricConfidence: document.getElementById("metricConfidence"),
     confidenceBarFill: document.getElementById("confidenceBarFill"),
@@ -336,8 +342,10 @@
   }
 
   // ------------------------------------------------------------------
-  // Fetch and render preset scenario buttons
+  // Fetch and render preset scenario dropdown
   // ------------------------------------------------------------------
+  let loadedPresets = [];
+
   async function loadPresets() {
     try {
       let res;
@@ -353,42 +361,90 @@
       }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      renderPresetButtons(data.scenarios || []);
+      loadedPresets = data.scenarios || [];
+      renderPresetDropdown(loadedPresets);
       setStatus("online", "Inference engine online");
     } catch (err) {
       console.error("Failed to load presets:", err);
       setStatus("error", "Backend unreachable — check server");
-      el.presetButtons.innerHTML =
-        '<p class="history-empty">Could not load presets. Is the backend running?</p>';
+      if (el.presetSelect) {
+        el.presetSelect.innerHTML =
+          '<option value="" disabled selected>Could not load presets (server offline)</option>';
+      }
     }
   }
 
-  function renderPresetButtons(scenarios) {
-    el.presetButtons.innerHTML = "";
+  function renderPresetDropdown(scenarios) {
+    if (!el.presetSelect) return;
+    el.presetSelect.innerHTML = "";
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    placeholder.textContent = `— Select a scenario (${scenarios.length} available) —`;
+    el.presetSelect.appendChild(placeholder);
+
+    if (el.presetCountBadge) {
+      el.presetCountBadge.textContent = `${scenarios.length} Scenarios`;
+    }
+
+    // Group scenarios into Disasters vs Environment & Urban
+    const disasterGroup = document.createElement("optgroup");
+    disasterGroup.label = "🚨 Emergency & Disaster Geohazards";
+
+    const planningGroup = document.createElement("optgroup");
+    planningGroup.label = "🛰️ Environmental & Urban Telemetry";
+
     scenarios.forEach((scenario) => {
-      const btn = document.createElement("button");
-      btn.className = "preset-btn";
-      btn.dataset.scenarioId = scenario.id;
-      btn.innerHTML = `
-        <span class="dot" style="background:${scenario.color}"></span>
-        <div class="preset-btn-info">
-          <span class="preset-name">${scenario.name}</span>
-          <span class="preset-desc">${scenario.region || ""}</span>
-        </div>
-      `;
-      btn.addEventListener("click", () => {
-        setActivePresetButton(scenario.id);
-        el.queryInput.value = scenario.sample_query;
-        runQuery({ query: scenario.sample_query, scenario_id: scenario.id });
-      });
-      el.presetButtons.appendChild(btn);
+      const opt = document.createElement("option");
+      opt.value = scenario.id;
+      opt.textContent = `${scenario.name} — ${scenario.region || ""}`;
+
+      const isDisaster = ["flood", "sikkim_flood", "joshimath", "landslide", "manipur_landslide", "fire"].includes(scenario.id);
+      if (isDisaster) {
+        disasterGroup.appendChild(opt);
+      } else {
+        planningGroup.appendChild(opt);
+      }
     });
+
+    if (disasterGroup.children.length > 0) el.presetSelect.appendChild(disasterGroup);
+    if (planningGroup.children.length > 0) el.presetSelect.appendChild(planningGroup);
+
+    // Attach change handler
+    el.presetSelect.onchange = () => {
+      const selectedId = el.presetSelect.value;
+      const scenario = loadedPresets.find((s) => s.id === selectedId);
+      if (!scenario) return;
+
+      setActivePreset(scenario.id);
+      el.queryInput.value = scenario.sample_query;
+      runQuery({ query: scenario.sample_query, scenario_id: scenario.id });
+    };
+  }
+
+  function setActivePreset(scenarioId) {
+    if (!el.presetSelect) return;
+    el.presetSelect.value = scenarioId || "";
+
+    if (!scenarioId) {
+      if (el.presetActiveCard) el.presetActiveCard.style.display = "none";
+      return;
+    }
+
+    const scenario = loadedPresets.find((s) => s.id === scenarioId);
+    if (scenario && el.presetActiveCard) {
+      if (el.presetCardDot) el.presetCardDot.style.background = scenario.color || "var(--cyan)";
+      if (el.presetCardTitle) el.presetCardTitle.textContent = scenario.name;
+      if (el.presetCardRegion) el.presetCardRegion.textContent = scenario.region || "";
+      if (el.presetCardDesc) el.presetCardDesc.textContent = scenario.description || "";
+      el.presetActiveCard.style.display = "flex";
+    }
   }
 
   function setActivePresetButton(scenarioId) {
-    document.querySelectorAll(".preset-btn").forEach((b) => {
-      b.classList.toggle("active", b.dataset.scenarioId === scenarioId);
-    });
+    setActivePreset(scenarioId);
   }
 
   // ------------------------------------------------------------------
