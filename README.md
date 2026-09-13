@@ -72,7 +72,7 @@ SatQuery AI bridges the divide between raw Earth Observation (EO) satellite tele
                                               │
                                               ▼
                           ┌────────────────────────────────────────────┐
-                          │        SatQueryEngine (backend/inference.py)│
+                          │    SatQueryEngine (backend/inference.py)   │
                           │                                            │
                           │   Natural Language Query                   │
                           │       │                                    │
