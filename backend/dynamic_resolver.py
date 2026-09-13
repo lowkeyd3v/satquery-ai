@@ -54,38 +54,52 @@ def normalize_geo_text(text: str) -> str:
     return t
 
 
+LOCATION_STOP_WORDS = {
+    "detect", "detection", "show", "highlight", "find", "monitor", "track", "analyze", "identifying", "identify", "map", "mapping",
+    "flood", "floods", "flooded", "flooding", "inundation", "inundated",
+    "water", "waters", "waterbody", "waterbodies", "body", "bodies",
+    "urban", "sprawl", "expansion", "built-up", "development", "settlement", "settlements",
+    "agriculture", "agricultural", "drought", "crop", "crops", "moisture", "stress", "farm", "farms", "pond", "ponds",
+    "fire", "fires", "wildfire", "wildfires", "burn", "burnt", "scar", "scars", "front", "fronts", "forest", "forests", "active",
+    "landslide", "landslides", "subsidence", "sinking", "crack", "cracks", "damage", "damages", "earthquake", "earthquakes", "seismic",
+    "satellite", "imagery", "analysis", "telemetry", "pipeline", "stac", "sensor", "resolution", "optical", "sar",
+    "the", "a", "an", "this", "that", "these", "those", "my", "our", "all", "any",
+    "zone", "zones", "area", "areas", "region", "regions", "sector", "sectors", "extent",
+    "tile", "tiles", "image", "images", "scene", "scenes", "picture", "pictures", "photo", "photos",
+    "in", "at", "on", "near", "around", "of", "over", "for", "with", "and", "or", "from", "to", "into",
+    "here", "there", "view", "current", "latest", "recent", "high", "low", "critical", "moderate",
+}
+
+GEOGRAPHIC_KEYWORDS = {
+    "district", "city", "region", "basin", "river", "tal", "taal", "lake", "nagar",
+    "taluka", "gkp", "valley", "mount", "hills", "island", "ghat", "bay"
+}
+
+
 def extract_location_token(query: str) -> Optional[str]:
     text = query.strip()
     words = text.split()
 
     prep_triggers = ["in", "near", "around", "at", "of", "over", "for"]
-    lower_words = [w.lower() for w in words]
+    lower_words = [w.lower().strip(" ,.?!'\"") for w in words]
 
     for prep in prep_triggers:
         if prep in lower_words:
             idx = lower_words.index(prep)
-            candidate = " ".join(words[idx + 1:]).strip(" ,.?!'\"")
-            clean_tokens = []
-            for w in candidate.split():
-                if w.lower() in ["district", "city", "region", "basin", "river", "tal", "taal", "lake", "nagar", "taluka", "gkp"]:
-                    clean_tokens.append(w)
-                elif w.lower() in ["water", "flood", "floods", "urban", "sprawl", "fire", "wildfire", "area", "map", "satellite", "imagery"]:
-                    break
-                else:
-                    clean_tokens.append(w)
-            if clean_tokens:
-                return " ".join(clean_tokens)
+            candidate_words = words[idx + 1:]
+            clean = []
+            for w in candidate_words:
+                lw = w.lower().strip(" ,.?!'\"")
+                if lw in LOCATION_STOP_WORDS and lw not in GEOGRAPHIC_KEYWORDS:
+                    continue
+                clean.append(w.strip(" ,.?!'\""))
+            if clean:
+                if any(w.lower().strip(" ,.?!'\"") not in LOCATION_STOP_WORDS for w in clean):
+                    return " ".join(clean)
 
-    stop_words = {
-        "detect", "detection", "show", "highlight", "find", "monitor", "track",
-        "flood", "floods", "flooded", "water", "waterbody", "waterbodies", "lake",
-        "river", "urban", "sprawl", "city", "expansion", "agriculture", "drought",
-        "fire", "wildfire", "burn", "scar", "satellite", "imagery", "analysis",
-        "the", "a", "an", "this", "zone", "zones", "area", "areas", "map",
-    }
-    filtered = [w for w in words if w.lower().strip(" ,.?!'\"") not in stop_words]
+    filtered = [w.strip(" ,.?!'\"") for w in words if w.lower().strip(" ,.?!'\"") not in LOCATION_STOP_WORDS]
     if filtered:
-        return " ".join(filtered).strip(" ,.?!'\"")
+        return " ".join(filtered)
 
     return None
 
@@ -1070,6 +1084,7 @@ def synthesize_dynamic_response(
     metadata = {
         "region": display_name,
         "centroid": [round(lat, 4), round(lon, 4)],
+        "center": [round(lat, 4), round(lon, 4)],
         "bbox": bbox,
         "sensor": "Sentinel-2 MSI (10m) / ESA Copernicus STAC",
         "granule_id": stac_data.get("granule_id", "S2_DAILY_PASS"),
