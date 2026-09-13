@@ -28,6 +28,9 @@
   --r-md: 8px;
   --r-lg: 12px;
   --map-tile-filter: brightness(0.8) contrast(1.08) saturate(0.85);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.22);
+  --scrollbar-thumb-hover: rgba(34, 211, 238, 0.55);
+  --scrollbar-track: rgba(0, 0, 0, 0.15);
 }
 
 [data-theme="light"] {
@@ -49,6 +52,9 @@
   --red:    #dc2626;
   --amber:  #d97706;
   --map-tile-filter: brightness(0.96) contrast(1.04) saturate(1.0);
+  --scrollbar-thumb: rgba(15, 23, 42, 0.25);
+  --scrollbar-thumb-hover: rgba(2, 132, 199, 0.6);
+  --scrollbar-track: rgba(0, 0, 0, 0.05);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -63,9 +69,40 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 2px; }
+/* Custom Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-track:hover {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--cyan);
+}
 
 /* TOP BAR */
 .topbar {
