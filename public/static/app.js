@@ -707,7 +707,8 @@
     const istTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "medium" }) + " IST";
     const utcTime = new Date().toUTCString();
 
-    const tableRowsHtml = features.slice(0, 10).map((f, idx) => {
+    const maxRows = 4;
+    let tableRowsHtml = features.slice(0, maxRows).map((f, idx) => {
       const fp = f.properties || {};
       let coordsStr = "—";
       if (f.geometry?.coordinates) {
@@ -735,6 +736,16 @@
         </tr>
       `;
     }).join("");
+
+    if (features.length > maxRows) {
+      tableRowsHtml += `
+        <tr>
+          <td colspan="5" style="text-align: center; font-size: 8px; padding: 2px; color: var(--text-2); background: rgba(255,255,255,0.02);">
+            + ${features.length - maxRows} additional delineated sectors recorded in full GeoJSON telemetry
+          </td>
+        </tr>
+      `;
+    }
 
     let hydroRow = "";
     if (hydro) {
