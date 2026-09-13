@@ -1102,7 +1102,7 @@ SCENARIO_PRESETS = [
     {
         "id": "flood",
         "name": "Detect Floods",
-        "sample_query": "Highlight flooded regions in this tile",
+        "sample_query": "Highlight flooded regions and riverine inundation in Brahmaputra Assam",
         "description": "Identifies inundated floodplains and breached embankments using SAR change detection.",
         "region": "Brahmaputra Basin, Assam",
         "color": "#ff1744",
@@ -1152,7 +1152,7 @@ SCENARIO_PRESETS = [
     {
         "id": "urban",
         "name": "Track Urban Sprawl",
-        "sample_query": "Show urban expansion and built-up development",
+        "sample_query": "Show urban expansion and built-up development in Bengaluru",
         "description": "Detects newly constructed concrete and peri-urban sprawl for town planning.",
         "region": "Bengaluru Metropolitan Region",
         "color": "#ff9100",
@@ -1162,7 +1162,7 @@ SCENARIO_PRESETS = [
     {
         "id": "fire",
         "name": "Forest Fire Hotspots",
-        "sample_query": "Detect active forest fire fronts and burn scars",
+        "sample_query": "Detect active forest fire fronts and burn scars in Similipal",
         "description": "Flags thermal wildfire anomalies and post-fire canopy burn damage.",
         "region": "Similipal National Park, Odisha",
         "color": "#e040fb",
@@ -1172,7 +1172,7 @@ SCENARIO_PRESETS = [
     {
         "id": "agriculture",
         "name": "Crop Drought Stress",
-        "sample_query": "Analyze crop drought moisture stress and farm ponds",
+        "sample_query": "Analyze crop drought moisture stress and farm ponds in Vidarbha",
         "description": "Maps agricultural vegetation moisture deficit and depleted reservoirs.",
         "region": "Vidarbha, Maharashtra",
         "color": "#ffd600",
