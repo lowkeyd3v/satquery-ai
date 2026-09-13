@@ -53,7 +53,9 @@ SatQuery AI bridges the divide between raw Earth Observation (EO) satellite tele
                           │         FRONTEND (Edge CDN / Browser)      │
                           │  public/ (Vercel CDN) & frontend/ (Local)  │
                           │  • Leaflet.js interactive satellite map    │
-                          │  • Query console + 5 preset scenario chips │
+                          │  • Drag-and-drop satellite tile upload zone│
+                          │  • Natural language query console          │
+                          │  • Categorized preset dropdown (8 scenarios│
                           │  • Live NASA GIBS daily satellite toggle   │
                           │  • Light / Dark mode theme controller      │
                           │  • 3-Step temporal progression player      │
@@ -61,12 +63,13 @@ SatQuery AI bridges the divide between raw Earth Observation (EO) satellite tele
                           │  • Interactive Provenance & AI Model Modal │
                           │  • GeoJSON vector export & API Docs link   │
                           └───────────────────┬────────────────────────┘
-                                              │ REST (JSON over HTTP/HTTPS)
+                                              │ REST (JSON & Multipart/Form-Data)
                                               ▼
                           ┌────────────────────────────────────────────┐
                           │            BACKEND — FastAPI               │
                           │  backend/main.py / api/index.py (Vercel)   │
                           │  • POST /api/v1/query                      │
+                          │  • POST /api/v1/upload-query (Tile upload) │
                           │  • GET  /api/v1/scenarios                  │
                           │  • GET  /api/v1/health                     │
                           │  • GET  /api/v1/temporal/{scenario_id}     │
@@ -78,7 +81,7 @@ SatQuery AI bridges the divide between raw Earth Observation (EO) satellite tele
                           ┌────────────────────────────────────────────┐
                           │    SatQueryEngine (backend/inference.py)   │
                           │                                            │
-                          │   Natural Language Query                   │
+                          │   Natural Language Query / Image Tile      │
                           │       │                                    │
                           │       ▼                                    │
                           │   ┌───────────────────────────┐            │
@@ -88,17 +91,23 @@ SatQuery AI bridges the divide between raw Earth Observation (EO) satellite tele
                           │     ┌───────────┼────────────┐             │
                           │     ▼           ▼            ▼             │
                           │ DYNAMIC API   CALIBRATED   REAL VLM MODE   │
-                          │ (Live Feeds)  (Benchmarks) (Local GPU)     │
+                          │ (Live Feeds)  (8 Disasters)(Local GPU)     │
                           │     │           │            │             │
                           │     ▼           ▼            ▼             │
                           │ dynamic_      spatial_     RemoteCLIP +    │
                           │ resolver.py   data.py      Grounding DINO  │
                           │               • Assam      + SAM 2         │
                           │ • OSM Overpass  Floods                     │
-                          │ • USGS Quakes • Wayanad                    │
-                          │ • AWS STAC      Landslides                 │
-                          │ • GloFAS      • Bengaluru                  │
-                          │   Hydro         Sprawl                     │
+                          │ • USGS Quakes • Sikkim                     │
+                          │ • AWS STAC      GLOF                       │
+                          │ • GloFAS      • Joshimath                  │
+                          │   Hydro         Subsidence                 │
+                          │               • Wayanad                    │
+                          │                 Landslides                 │
+                          │               • Manipur                    │
+                          │                 Landslides                 │
+                          │               • Bengaluru                  │
+                          │                 Sprawl                     │
                           │               • Similipal                  │
                           │                 Wildfire                   │
                           │               • Vidarbha                   │
@@ -122,7 +131,7 @@ SatQuery AI connects to an ecosystem of real-time open Earth Observation and dis
 
 | External Service | Provider | Purpose | Endpoints / Specifications |
 |---|---|---|---|
-| **NASA GIBS** | NASA EOSDIS | Live Daily True-Color Satellite Imagery | WMTS / EPSG:3857 MODIS Terra & VIIRS TrueColor (`default/default`) with `maxNativeZoom: 9` |
+| **NASA GIBS** | NASA EOSDIS | Live Daily True-Color Satellite Imagery | WMTS / EPSG:3857 MODIS Terra & VIIRS TrueColor with dynamic ISO date resolution (`YYYY-MM-DD`) and `.jpeg` format |
 | **USGS Earthquake API** | US Geological Survey | Real-time global seismic feeds & epicenters | `https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson` |
 | **OpenStreetMap Overpass** | OpenStreetMap Foundation | High-precision dynamic global hydrography & water bodies | `https://overpass-api.de/api/interpreter` (QL: `natural=water`, `water=*`) |
 | **OSM Nominatim** | OpenStreetMap Foundation | Global geocoding & administrative boundary resolution | `https://nominatim.openstreetmap.org/search` |
@@ -133,15 +142,18 @@ SatQuery AI connects to an ecosystem of real-time open Earth Observation and dis
 
 ## 4. Operational Scenario Presets & Benchmarks
 
-In addition to dynamic queries worldwide, SatQuery AI features five calibrated disaster and environmental benchmarks based on official satellite activations:
+In addition to dynamic multi-API queries worldwide, SatQuery AI features eight calibrated disaster and environmental benchmarks based on official satellite activations and ground-truth telemetry:
 
 | Scenario | Location | Sensors | Benchmark Source | Core Algorithm / Model |
 |---|---|---|---|---|
-| **Detect Floods** | Brahmaputra Basin, Assam | Sentinel-1A C-SAR (10m) / RISAT-1A | Copernicus EMS Activation `EMSR586` | Bitemporal SAR Backscatter Ratio ($\sigma^0\ 	ext{VV/VH}$) + Otsu Thresholding |
+| **Detect Floods** | Brahmaputra Basin, Assam | Sentinel-1A C-SAR (10m) / RISAT-1A | Copernicus EMS Activation `EMSR586` | Bitemporal SAR Backscatter Ratio ($\sigma^0\ \text{VV/VH}$) + Otsu Thresholding |
+| **Sikkim Flash Flood & GLOF** | Teesta River Valley, Sikkim | Sentinel-1A C-SAR / ISRO Cartosat-3 / Sentinel-2A | Copernicus EMS Activation `EMSR692` & ISRO NRSC NDMS | Bitemporal SAR Backscatter Coherence Loss + CWC Hydrograph Surge Telemetry |
+| **Joshimath Land Subsidence** | Chamoli District, Uttarakhand | Sentinel-1A DInSAR / Cartosat-3 (0.28m) | ISRO SAC DInSAR Analysis & NRSC Bhuvan | Multi-temporal DInSAR Phase Unwrapping (5.6cm $\lambda$) + PSInSAR Displacement Stacks |
 | **Detect Landslides** | Wayanad, Kerala | Cartosat-3 (0.28m PAN) / Sentinel-1A SAR | ISRO NRSC DMS & GSI Geotechnical Report | Optical Differential Change Detection + InSAR Coherence ($\gamma < 0.25$) + DEM Slope (>34°) |
-| **Track Urban Sprawl** | Bengaluru Metropolitan | Cartosat-3 Optical (0.28m PAN / 1.12m MX) | European Commission GHSL Settlement Grid | Normalized Difference Built-Up Index ($	ext{NDBI}$) + Impervious Surface Fraction |
-| **Forest Fire Hotspots** | Similipal National Park, Odisha | NASA VIIRS (375m) / Sentinel-2 MSI (20m) | NASA FIRMS Active Fire Archive & FSI Van Agni | Thermal Anomaly ($4\mu	ext{m} / 11\mu	ext{m}$) + Differenced Normalized Burn Ratio ($	ext{dNBR} > 0.44$) |
-| **Crop Drought Stress** | Vidarbha, Maharashtra | Resourcesat-2A AWiFS (56m) / MODIS (250m) | NASA LP DAAC MOD13A2 & ISRO Bhuvan | Vegetation Condition Index ($	ext{VCI} < 25\%$) + Normalized Difference Moisture Index ($	ext{NDMI}$) |
+| **Manipur Landslides** | Noney & Jiribam, Manipur | ISRO Cartosat-3 / Sentinel-2A / Resourcesat-2A | ISRO NRSC Rapid Mapping & GSI Landslide Atlas | Bi-temporal Cartosat-3 PAN Change Detection + Coherence Loss Index + Fluvial Blocking |
+| **Track Urban Sprawl** | Bengaluru Metropolitan | Cartosat-3 Optical (0.28m PAN / 1.12m MX) | European Commission GHSL Settlement Grid | Normalized Difference Built-Up Index ($\text{NDBI}$) + Impervious Surface Fraction |
+| **Forest Fire Hotspots** | Similipal National Park, Odisha | NASA VIIRS (375m) / Sentinel-2 MSI (20m) | NASA FIRMS Active Fire Archive & FSI Van Agni | Thermal Anomaly ($4\mu\text{m} / 11\mu\text{m}$) + Differenced Normalized Burn Ratio ($\text{dNBR} > 0.44$) |
+| **Crop Drought Stress** | Vidarbha, Maharashtra | Resourcesat-2A AWiFS (56m) / MODIS (250m) | NASA LP DAAC MOD13A2 & ISRO Bhuvan | Vegetation Condition Index ($\text{VCI} < 25\%$) + Normalized Difference Moisture Index ($\text{NDMI}$) |
 
 ---
 
@@ -214,22 +226,34 @@ Deploying your own fork to Vercel requires zero build configuration &mdash; simp
 
 ## 7. Key Features & User Interface
 
-### 1. Natural Language Geospatial Querying
+### 1. Drag-and-Drop Satellite Image Tile Upload & Query
+Allow evaluators and judges to drag and drop their own arbitrary satellite imagery files (GeoTIFF, PNG, JPEG up to 50MB) directly onto the upload zone:
+* Live client-side thumbnail rendering with filename, file size formatting, and one-click clear button.
+* Auto-suggests natural-language prompts if the input box is blank.
+* Multipart form-data pipeline (`POST /api/v1/upload-query`) executing contextual vision-language spatial classification and vector segmentation.
+
+### 2. Categorized Mission-Control Preset Selector
+Replaced crowded button stacks with a sleek, categorized 40px select menu keeping all control panels, live telemetry, and map controls visible on a single screen without scrolling:
+* **🚨 Emergency & Disaster Geohazards:** Assam Brahmaputra Floods, Sikkim Teesta GLOF, Joshimath Subsidence, Wayanad Landslides, Manipur Railway Landslides, Similipal Forest Fires.
+* **🛰️ Environmental & Urban Telemetry:** Bengaluru Urban Sprawl, Vidarbha Crop Drought Stress.
+* **Dynamic Context Card:** Instantly previews the active scenario's thematic color dot, administrative region badge, sensor attribution, and operational summary.
+
+### 3. Natural Language Geospatial Querying
 Submit unconstrained operational queries such as:
 * *"Highlight flooded regions in Assam along the Brahmaputra"*
+* *"Detect Teesta flash flood and South Lhonak lake GLOF in Sikkim"*
+* *"Analyze land subsidence and crack damage in Joshimath Uttarakhand"*
 * *"Identify landslide scars and debris flow runout in Wayanad"*
-* *"Earthquakes in India"*
-* *"Water bodies in Gorakhpur"* or *"Ramgarh Tal"*
-* *"Detect active wildfire fronts in Similipal"*
-* *"Track urban sprawl in Bengaluru"*
+* *"Map landslide debris and railway yard failure in Noney Manipur"*
+* *"Earthquakes in India"* or *"Water bodies in Gorakhpur"*
 
-### 2. Live NASA GIBS Daily Satellite Layer
-Toggle daily true-color satellite imagery directly from the floating map pill. Leaflet smoothly overzooms level 9 imagery up to level 19 via `maxNativeZoom: 9`, providing recent global true-color coverage without tile clipping errors.
+### 4. Live NASA GIBS Daily Satellite Layer
+Toggle daily true-color satellite imagery directly from the floating map pill. An intelligent date-resolution algorithm computes the latest completed global composite date (`YYYY-MM-DD`) and retrieves official WMTS `.jpeg` tiles across zoom levels 1–9 (overzoomed to 19 via `maxNativeZoom: 9`) with guaranteed zero-404 availability.
 
-### 3. Light & Dark Mode Toggle
+### 5. Light & Dark Mode Toggle
 Switch instantly between the **ISRO Mission Control Dark Theme** and high-visibility **Daylight / Clean Light Theme** with seamless transitions, persisted in browser `localStorage`.
 
-### 4. Interactive Provenance & AI Model Modal
+### 6. Interactive Provenance & AI Model Modal
 Click **"View Source & AI Model Details"** on any query report to open a dedicated modal displaying:
 * STAC granule scene ID and acquisition timestamp
 * Optical / SAR sensor platform and ground sampling distance (GSD)
@@ -237,13 +261,13 @@ Click **"View Source & AI Model Details"** on any query report to open a dedicat
 * Machine learning model architectures (RemoteCLIP, Grounding DINO, SAM 2, Otsu, DInSAR)
 * Official data provider links (Copernicus, ISRO, NASA, USGS, OpenStreetMap)
 
-### 5. Interactive 3-Step Temporal Progression
+### 7. Interactive 3-Step Temporal Progression
 Inspect temporal evolution across three distinct operational phases:
-* **Step 1: Baseline / Detection** (Initial anomaly identified)
-* **Step 2: Spread / Growth** (Active propagation)
-* **Step 3: Peak / Post-Event** (Maximum extent / burn scar / inundation)
+* **Step 1: Baseline / Detection** (Initial anomaly / moraine shear / early stress)
+* **Step 2: Spread / Growth** (Active surge / inundation propagation / secondary failure)
+* **Step 3: Peak / Post-Event** (Maximum extent / valley blockage / critical deformation)
 
-### 6. Standard Vector Export
+### 8. Standard Vector Export
 Export delineated polygons directly as `.geojson` for seamless drag-and-drop import into **QGIS**, **ArcGIS**, or **ISRO Bhuvan**.
 
 ---
@@ -258,7 +282,8 @@ Interactive Swagger documentation is available at [`/docs`](https://satquery-ai-
 |---|---|---|
 | `GET` | `/api/v1/health` | Service health status and inference engine diagnostics |
 | `GET` | `/api/v1/scenarios` | List of supported preset scenarios, queries, and sensor sources |
-| `POST` | `/api/v1/query` | Submit natural-language query; returns GeoJSON with spatial polygons |
+| `POST` | `/api/v1/query` | Submit natural-language query (`application/json`); returns GeoJSON |
+| `POST` | `/api/v1/upload-query` | Submit satellite tile (`multipart/form-data`) + query for multimodal analysis |
 | `GET` | `/api/v1/temporal/{scenario_id}` | Returns 3-step temporal GeoJSON snapshots (Detection → Spread → Peak) |
 | `GET` | `/docs` | Interactive Swagger UI API documentation |
 | `GET` | `/openapi.json` | Complete OpenAPI 3.1 specification schema |
@@ -266,7 +291,17 @@ Interactive Swagger documentation is available at [`/docs`](https://satquery-ai-
 ### Sample POST `/api/v1/query` Request
 
 ```bash
-curl -X POST https://satquery-ai-sage.vercel.app/api/v1/query   -H "Content-Type: application/json"   -d '{"query": "Earthquakes in India"}'
+curl -X POST https://satquery-ai-sage.vercel.app/api/v1/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Earthquakes in India"}'
+```
+
+### Sample POST `/api/v1/upload-query` Request (Image Tile Upload)
+
+```bash
+curl -X POST https://satquery-ai-sage.vercel.app/api/v1/upload-query \
+  -F "query=Detect floods in this satellite image" \
+  -F "file=@satellite_tile.png"
 ```
 
 ### Sample Response Payload
@@ -344,6 +379,7 @@ satquery-ai/
 ├── requirements.txt          # Production & Vercel dependencies (~25MB)
 ├── requirements-gpu.txt      # GPU dependencies for real VLM / SAM 2 mode (~2.5GB)
 ├── vercel.json               # Vercel serverless routing & static asset rewrite rules
+├── .githooks/                # Git pre-commit hooks (auto-syncs frontend/ → public/)
 ├── api/
 │   └── index.py              # Vercel Serverless Function entrypoint + ASGI path middleware
 ├── backend/
@@ -353,7 +389,7 @@ satquery-ai/
 │   ├── dynamic_resolver.py   # Multi-API resolver (Overpass, USGS, GloFAS, STAC)
 │   └── spatial_data.py       # Calibrated GeoJSON scenarios, contours & temporal progression
 ├── frontend/                 # Local source frontend
-│   ├── index.html            # Dashboard markup and control panels
+│   ├── index.html            # Dashboard markup, upload dropzone, & control panels
 │   ├── styles.css            # Dark/Light theme styles, responsive layout, animations
 │   └── app.js                # Map engine, Leaflet handlers, history & temporal animation
 └── public/                   # Production CDN static assets for Vercel
