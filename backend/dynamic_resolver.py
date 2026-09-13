@@ -17,7 +17,10 @@ from __future__ import annotations
 import json
 import logging
 import math
+import os
+import threading
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -28,7 +31,256 @@ logging.basicConfig(level=logging.INFO)
 
 USER_AGENT = "SatQuery-AI-SIH26167-ISRO/2.0 (contact: support@satquery.ai)"
 
-_LOCATION_CACHE: Dict[str, Dict[str, Any]] = {}
+# Nominatim rate-limiting & provider configuration
+NOMINATIM_BASE_URL = os.getenv("NOMINATIM_BASE_URL", "https://nominatim.openstreetmap.org").rstrip("/")
+NOMINATIM_MIN_INTERVAL = float(os.getenv("NOMINATIM_MIN_INTERVAL", "1.05"))
+
+_LAST_NOMINATIM_CALL = 0.0
+_NOMINATIM_LOCK = threading.Lock()
+
+
+def _enforce_nominatim_rate_limit() -> None:
+    """Ensure at least 1.05 seconds between consecutive requests to comply with OSM policy."""
+    global _LAST_NOMINATIM_CALL
+    with _NOMINATIM_LOCK:
+        now = time.time()
+        elapsed = now - _LAST_NOMINATIM_CALL
+        if elapsed < NOMINATIM_MIN_INTERVAL:
+            sleep_time = NOMINATIM_MIN_INTERVAL - elapsed
+            time.sleep(sleep_time)
+        _LAST_NOMINATIM_CALL = time.time()
+
+
+# ---------------------------------------------------------------------------
+# Pre-indexed Indian Disaster Gazetteer
+# Provides immediate 0ms offline resolution for critical Indian disaster
+# theaters, water bodies, and metropolitan centers, completely bypassing
+# Nominatim network calls and rate limits.
+# ---------------------------------------------------------------------------
+INDIAN_GAZETTEER: Dict[str, Dict[str, Any]] = {
+    "gorakhpur": {
+        "display_name": "Gorakhpur, Uttar Pradesh, India",
+        "name": "Gorakhpur",
+        "lat": 26.7606,
+        "lon": 83.3732,
+        "bbox": [83.3100, 26.7100, 83.4300, 26.8100],
+        "osm_class": "place",
+        "osm_type": "city",
+        "address": {"city": "Gorakhpur", "state": "Uttar Pradesh", "country": "India"},
+    },
+    "ramgarh tal": {
+        "display_name": "Ramgarh Tal, Gorakhpur, Uttar Pradesh, India",
+        "name": "Ramgarh Tal",
+        "lat": 26.7320,
+        "lon": 83.3980,
+        "bbox": [83.3750, 26.7150, 83.4250, 26.7550],
+        "osm_class": "natural",
+        "osm_type": "water",
+        "address": {"water": "Ramgarh Tal", "city": "Gorakhpur", "state": "Uttar Pradesh", "country": "India"},
+    },
+    "ramgarh taal": {
+        "display_name": "Ramgarh Tal, Gorakhpur, Uttar Pradesh, India",
+        "name": "Ramgarh Tal",
+        "lat": 26.7320,
+        "lon": 83.3980,
+        "bbox": [83.3750, 26.7150, 83.4250, 26.7550],
+        "osm_class": "natural",
+        "osm_type": "water",
+        "address": {"water": "Ramgarh Tal", "city": "Gorakhpur", "state": "Uttar Pradesh", "country": "India"},
+    },
+    "chilua tal": {
+        "display_name": "Chilua Tal, Gorakhpur, Uttar Pradesh, India",
+        "name": "Chilua Tal",
+        "lat": 26.8250,
+        "lon": 83.3450,
+        "bbox": [83.3200, 26.8050, 83.3700, 26.8450],
+        "osm_class": "natural",
+        "osm_type": "water",
+        "address": {"water": "Chilua Tal", "city": "Gorakhpur", "state": "Uttar Pradesh", "country": "India"},
+    },
+    "chilua taal": {
+        "display_name": "Chilua Tal, Gorakhpur, Uttar Pradesh, India",
+        "name": "Chilua Tal",
+        "lat": 26.8250,
+        "lon": 83.3450,
+        "bbox": [83.3200, 26.8050, 83.3700, 26.8450],
+        "osm_class": "natural",
+        "osm_type": "water",
+        "address": {"water": "Chilua Tal", "city": "Gorakhpur", "state": "Uttar Pradesh", "country": "India"},
+    },
+    "punjab": {
+        "display_name": "Punjab, India",
+        "name": "Punjab",
+        "lat": 30.9010,
+        "lon": 75.8573,
+        "bbox": [73.8800, 29.5300, 76.9300, 32.5000],
+        "osm_class": "boundary",
+        "osm_type": "administrative",
+        "address": {"state": "Punjab", "country": "India"},
+    },
+    "assam": {
+        "display_name": "Assam, Brahmaputra Valley, India",
+        "name": "Assam",
+        "lat": 26.2006,
+        "lon": 92.9376,
+        "bbox": [89.7000, 24.1500, 96.0200, 28.0000],
+        "osm_class": "boundary",
+        "osm_type": "administrative",
+        "address": {"state": "Assam", "country": "India"},
+    },
+    "brahmaputra": {
+        "display_name": "Brahmaputra River Basin, Assam, India",
+        "name": "Brahmaputra",
+        "lat": 26.9500,
+        "lon": 94.2000,
+        "bbox": [89.7000, 25.0000, 95.5000, 27.8000],
+        "osm_class": "natural",
+        "osm_type": "water",
+        "address": {"river": "Brahmaputra", "state": "Assam", "country": "India"},
+    },
+    "delhi": {
+        "display_name": "Delhi, National Capital Territory, India",
+        "name": "Delhi",
+        "lat": 28.6139,
+        "lon": 77.2090,
+        "bbox": [76.8400, 28.4000, 77.3500, 28.8800],
+        "osm_class": "place",
+        "osm_type": "city",
+        "address": {"city": "Delhi", "country": "India"},
+    },
+    "mumbai": {
+        "display_name": "Mumbai, Maharashtra, India",
+        "name": "Mumbai",
+        "lat": 19.0760,
+        "lon": 72.8777,
+        "bbox": [72.7700, 18.8900, 72.9900, 19.2700],
+        "osm_class": "place",
+        "osm_type": "city",
+        "address": {"city": "Mumbai", "state": "Maharashtra", "country": "India"},
+    },
+    "bengaluru": {
+        "display_name": "Bengaluru, Karnataka, India",
+        "name": "Bengaluru",
+        "lat": 12.9716,
+        "lon": 77.5946,
+        "bbox": [77.4600, 12.8300, 77.7500, 13.1400],
+        "osm_class": "place",
+        "osm_type": "city",
+        "address": {"city": "Bengaluru", "state": "Karnataka", "country": "India"},
+    },
+    "lucknow": {
+        "display_name": "Lucknow, Uttar Pradesh, India",
+        "name": "Lucknow",
+        "lat": 26.8467,
+        "lon": 80.9462,
+        "bbox": [80.8000, 26.7000, 81.1000, 27.0000],
+        "osm_class": "place",
+        "osm_type": "city",
+        "address": {"city": "Lucknow", "state": "Uttar Pradesh", "country": "India"},
+    },
+    "varanasi": {
+        "display_name": "Varanasi, Uttar Pradesh, India",
+        "name": "Varanasi",
+        "lat": 25.3176,
+        "lon": 82.9739,
+        "bbox": [82.9000, 25.2500, 83.0500, 25.3800],
+        "osm_class": "place",
+        "osm_type": "city",
+        "address": {"city": "Varanasi", "state": "Uttar Pradesh", "country": "India"},
+    },
+    "wayanad": {
+        "display_name": "Wayanad, Kerala, India",
+        "name": "Wayanad",
+        "lat": 11.6854,
+        "lon": 76.1320,
+        "bbox": [75.8000, 11.4500, 76.4500, 11.9500],
+        "osm_class": "boundary",
+        "osm_type": "administrative",
+        "address": {"district": "Wayanad", "state": "Kerala", "country": "India"},
+    },
+    "joshimath": {
+        "display_name": "Joshimath, Chamoli District, Uttarakhand, India",
+        "name": "Joshimath",
+        "lat": 30.5564,
+        "lon": 79.5663,
+        "bbox": [79.5200, 30.5200, 79.6200, 30.5900],
+        "osm_class": "place",
+        "osm_type": "town",
+        "address": {"town": "Joshimath", "state": "Uttarakhand", "country": "India"},
+    },
+    "sikkim": {
+        "display_name": "Sikkim, India",
+        "name": "Sikkim",
+        "lat": 27.5330,
+        "lon": 88.5122,
+        "bbox": [88.0000, 27.0000, 88.9000, 28.1500],
+        "osm_class": "boundary",
+        "osm_type": "administrative",
+        "address": {"state": "Sikkim", "country": "India"},
+    },
+    "similipal": {
+        "display_name": "Similipal National Park, Odisha, India",
+        "name": "Similipal",
+        "lat": 21.8500,
+        "lon": 86.3500,
+        "bbox": [86.1000, 21.4500, 86.6500, 22.1500],
+        "osm_class": "boundary",
+        "osm_type": "protected_area",
+        "address": {"park": "Similipal", "state": "Odisha", "country": "India"},
+    },
+    "vidarbha": {
+        "display_name": "Vidarbha, Maharashtra, India",
+        "name": "Vidarbha",
+        "lat": 20.9100,
+        "lon": 77.7800,
+        "bbox": [76.5000, 19.5000, 80.5000, 21.8000],
+        "osm_class": "region",
+        "osm_type": "region",
+        "address": {"region": "Vidarbha", "state": "Maharashtra", "country": "India"},
+    },
+    "noney": {
+        "display_name": "Noney, Manipur, India",
+        "name": "Noney",
+        "lat": 24.7200,
+        "lon": 93.5200,
+        "bbox": [93.4000, 24.6000, 93.7000, 24.8500],
+        "osm_class": "place",
+        "osm_type": "district",
+        "address": {"district": "Noney", "state": "Manipur", "country": "India"},
+    },
+    "kolkata": {
+        "display_name": "Kolkata, West Bengal, India",
+        "name": "Kolkata",
+        "lat": 22.5726,
+        "lon": 88.3639,
+        "bbox": [88.2500, 22.4500, 88.4500, 22.6500],
+        "osm_class": "place",
+        "osm_type": "city",
+        "address": {"city": "Kolkata", "state": "West Bengal", "country": "India"},
+    },
+    "chennai": {
+        "display_name": "Chennai, Tamil Nadu, India",
+        "name": "Chennai",
+        "lat": 13.0827,
+        "lon": 80.2707,
+        "bbox": [80.1500, 12.9500, 80.3500, 13.2000],
+        "osm_class": "place",
+        "osm_type": "city",
+        "address": {"city": "Chennai", "state": "Tamil Nadu", "country": "India"},
+    },
+    "hyderabad": {
+        "display_name": "Hyderabad, Telangana, India",
+        "name": "Hyderabad",
+        "lat": 17.3850,
+        "lon": 78.4867,
+        "bbox": [78.3000, 17.2500, 78.6000, 17.5500],
+        "osm_class": "place",
+        "osm_type": "city",
+        "address": {"city": "Hyderabad", "state": "Telangana", "country": "India"},
+    },
+}
+
+_LOCATION_CACHE: Dict[str, Dict[str, Any]] = dict(INDIAN_GAZETTEER)
 _STAC_CACHE: Dict[str, Dict[str, Any]] = {}
 _HYDRO_CACHE: Dict[str, Dict[str, Any]] = {}
 
@@ -151,6 +403,15 @@ def resolve_location(query_text: str) -> Optional[Dict[str, Any]]:
         return _LOCATION_CACHE[clean_query]
 
     location_token = extract_location_token(query_text)
+    token_norm = normalize_geo_text(location_token).lower() if location_token else None
+
+    # ── Fast Offline Indian Gazetteer Check (0ms, zero network calls) ────────
+    for key, g_data in INDIAN_GAZETTEER.items():
+        if (token_norm and (key == token_norm or key in token_norm)) or (key in clean_query):
+            _LOCATION_CACHE[clean_query] = g_data
+            logger.info("Resolved '%s' via offline Indian Disaster Gazetteer (0ms cache hit)", key)
+            return g_data
+
     candidates_to_try = build_search_candidates(query_text, location_token)
 
     expected_context = None
@@ -169,10 +430,13 @@ def resolve_location(query_text: str) -> Optional[Dict[str, Any]]:
             "limit": "3",
             "addressdetails": "1",
         }
-        url = f"https://nominatim.openstreetmap.org/search?{urllib.parse.urlencode(params)}"
+        url = f"{NOMINATIM_BASE_URL}/search?{urllib.parse.urlencode(params)}"
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
 
         try:
+            # Enforce 1.05s rate-limit spacing before outbound request
+            _enforce_nominatim_rate_limit()
+
             with urllib.request.urlopen(req, timeout=6) as response:
                 data = json.loads(response.read().decode("utf-8"))
                 if not data:
@@ -220,6 +484,12 @@ def resolve_location(query_text: str) -> Optional[Dict[str, Any]]:
                         "osm_class": top.get("class", ""),
                         "osm_type": top.get("type", ""),
                     }
+        except urllib.error.HTTPError as http_err:
+            if http_err.code == 429:
+                logger.warning("Nominatim HTTP 429 (Rate Limited). Backing off.")
+                time.sleep(1.5)
+            else:
+                logger.warning("Nominatim HTTP %s for '%s'", http_err.code, cand)
         except Exception as exc:
             logger.warning("Nominatim geocoding failed for %s: %s", cand, exc)
 
@@ -1003,26 +1273,39 @@ def synthesize_dynamic_response(
         else:
             # NO active flood: do NOT show false disaster polygons!
             # Show the monitored boundary with safe status and 0.0 km2
-            if has_polygon:
-                features.append({
-                    "type": "Feature",
-                    "id": "monitored_district_boundary",
-                    "properties": {
-                        "name": f"{loc_name} — Monitored Area (No Flood)",
-                        "feature_id": "DYN_SAFE_001",
-                        "scenario": "flood",
-                        "severity": "Normal",
-                        "confidence": 0.96,
-                        "area_sqkm": 0.0,
-                        "sensor": "Sentinel-2 MSI (10m) / ESA Copernicus STAC",
-                        "resolution": "10m GSD Multi-Spectral",
-                        "algorithm": "GloFAS Telemetry + Sentinel-2 Water Index Verification",
-                        "action": action_text,
-                        "color": "#10b981",  # Safe green
-                        "flood_active": False,
-                    },
-                    "geometry": boundary_geom,
-                })
+            if not has_polygon:
+                min_lon, min_lat, max_lon, max_lat = bbox[0], bbox[1], bbox[2], bbox[3]
+                boundary_geom = {
+                    "type": "Polygon",
+                    "coordinates": [[
+                        [min_lon, min_lat],
+                        [max_lon, min_lat],
+                        [max_lon, max_lat],
+                        [min_lon, max_lat],
+                        [min_lon, min_lat],
+                    ]]
+                }
+                has_polygon = True
+
+            features.append({
+                "type": "Feature",
+                "id": "monitored_district_boundary",
+                "properties": {
+                    "name": f"{loc_name} — Monitored Area (No Flood)",
+                    "feature_id": "DYN_SAFE_001",
+                    "scenario": "flood",
+                    "severity": "Normal",
+                    "confidence": 0.96,
+                    "area_sqkm": 0.0,
+                    "sensor": "Sentinel-2 MSI (10m) / ESA Copernicus STAC",
+                    "resolution": "10m GSD Multi-Spectral",
+                    "algorithm": "GloFAS Telemetry + Sentinel-2 Water Index Verification",
+                    "action": action_text,
+                    "color": "#10b981",  # Safe green
+                    "flood_active": False,
+                },
+                "geometry": boundary_geom,
+            })
 
     elif scenario_type == "water":
         # Check if the query specifically resolved to an actual natural water body
