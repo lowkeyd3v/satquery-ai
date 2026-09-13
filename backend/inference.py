@@ -100,6 +100,19 @@ SCENARIO_KEYWORDS = {
         "ndvi", "farm", "farming", "paddy", "cotton", "soybean", "vidarbha",
         "aridity", "soil moisture", "stress", "irrigation", "dryland",
     ],
+    "sikkim_flood": [
+        "sikkim", "teesta", "lhonak", "south lhonak", "chungthang", "singtam",
+        "rangpo", "glof", "glacial lake outburst", "moraine breach", "dikchu",
+    ],
+    "joshimath": [
+        "joshimath", "subsidence", "sinking", "ground sinking", "chamoli",
+        "dinsar", "tapovan", "crack", "cracking", "sunil ward", "manohar bagh",
+        "land subsidence", "deformation",
+    ],
+    "manipur_landslide": [
+        "manipur", "tupul", "noney", "jiribam", "khongsang", "railway yard collapse",
+        "nh-37", "nh-2", "barak river", "imphal-jiribam",
+    ],
 }
 
 
@@ -364,14 +377,23 @@ class SatQueryEngine:
                 ),
             )
 
+        q_lower = query_text.lower()
+        if any(k in q_lower for k in ["sikkim", "teesta", "lhonak", "chungthang"]):
+            effective_scenario = "sikkim_flood"
+        elif any(k in q_lower for k in ["joshimath", "subsidence", "sinking"]):
+            effective_scenario = "joshimath"
+        elif any(k in q_lower for k in ["manipur", "tupul", "noney"]):
+            effective_scenario = "manipur_landslide"
+
         # Only route to calibrated preset if query matches exact scenario AND location
         is_preset_match = (
-            (effective_scenario == "flood" and any(k in query_text.lower() for k in ["assam", "brahmaputra", "majuli", "dibrugarh"]))
-            or (effective_scenario == "landslide" and any(k in query_text.lower() for k in ["wayanad", "meppadi", "chooralmala", "mundakkai", "landslide"]))
-            or (effective_scenario == "urban" and any(k in query_text.lower() for k in ["bengaluru", "bangalore", "whitefield", "electronic city"]))
-            or (effective_scenario == "water" and any(k in query_text.lower() for k in ["chilika", "nalabana", "satapada"]))
-            or (effective_scenario == "fire" and "similipal" in query_text.lower())
-            or (effective_scenario == "agriculture" and any(k in query_text.lower() for k in ["vidarbha", "yavatmal"]))
+            effective_scenario in ["sikkim_flood", "joshimath", "manipur_landslide"]
+            or (effective_scenario == "flood" and any(k in q_lower for k in ["assam", "brahmaputra", "majuli", "dibrugarh"]))
+            or (effective_scenario == "landslide" and any(k in q_lower for k in ["wayanad", "meppadi", "chooralmala", "mundakkai", "landslide"]))
+            or (effective_scenario == "urban" and any(k in q_lower for k in ["bengaluru", "bangalore", "whitefield", "electronic city"]))
+            or (effective_scenario == "water" and any(k in q_lower for k in ["chilika", "nalabana", "satapada"]))
+            or (effective_scenario == "fire" and "similipal" in q_lower)
+            or (effective_scenario == "agriculture" and any(k in q_lower for k in ["vidarbha", "yavatmal"]))
         )
         loc_candidate = extract_location_token(query_text) if extract_location_token else None
         if (

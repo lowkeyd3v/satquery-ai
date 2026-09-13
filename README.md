@@ -27,17 +27,21 @@ SatQuery AI bridges the divide between raw Earth Observation (EO) satellite tele
 
 1. **Riverine Inundation & Embankment Breaches (NDRF / SDMA / CWC):**
    Rapid delineation of riverine floodplains and breached dykes (e.g., Brahmaputra Basin, Assam; Kosi River, Bihar) using cloud-penetrating Synthetic Aperture Radar (SAR) imagery and Copernicus GloFAS river discharge telemetry.
-2. **Catastrophic Landslides & Debris Flow (GSI / NDMA):**
-   Mapping of steep crown failure scarps, high-velocity avalanche runout chutes, and deposition fans (e.g., Wayanad Landslide, Kerala) using ISRO Cartosat-3 sub-meter optical and Sentinel-1A DInSAR coherence tracking.
-3. **Real-Time Earthquake & Seismic Hazards (USGS / National Center for Seismology):**
+2. **Glacial Lake Outburst Floods (GLOF) & Flash Floods (Sikkim / CWC / NDMA):**
+   Rapid mapping of South Lhonak glacial lake breach, Chungthang dam collapse, and downstream Teesta River valley flash flood surge using Sentinel-1A SAR and Cartosat-3.
+3. **Differential Land Subsidence & Structural Creep (ISRO SAC / CBRI / NDMA):**
+   Interferometric SAR (DInSAR / PSInSAR) mm-level deformation mapping of sinking slopes, surface rupture zones, and compromised civil structures (e.g., Joshimath, Uttarakhand).
+4. **Catastrophic Landslides & Debris Flow (GSI / NDMA):**
+   Mapping of steep crown failure scarps, railway infrastructure collapses, and deposition fans (e.g., Wayanad Landslide, Kerala; Tupul Railway Yard & NH-2 slope failures, Noney, Manipur) using ISRO Cartosat-3 sub-meter optical and Sentinel-1A DInSAR coherence tracking.
+5. **Real-Time Earthquake & Seismic Hazards (USGS / National Center for Seismology):**
    Live dynamic ingestion of global seismic feeds plotting earthquake epicenters, Richter magnitudes, focal depths, and geodetic shake impact radii.
-4. **Forestry & Wildfire Response (FSI / State Forest Departments):**
+6. **Forestry & Wildfire Response (FSI / State Forest Departments):**
    Thermal anomaly hotspot detection and post-fire burn scar perimeter mapping (e.g., Similipal Biosphere Reserve, Odisha) using NASA VIIRS 375m and Sentinel-2 SWIR.
-5. **Urban Planning & Built-Up Growth (MoHUA / Smart Cities):**
+7. **Urban Planning & Built-Up Growth (MoHUA / Smart Cities):**
    Automated tracking of unplanned peri-urban sprawl and impervious surface fractions (e.g., Bengaluru Metropolitan Region) using Cartosat-3 and European Commission GHSL.
-6. **Agricultural Drought & Moisture Stress (PMFBY / Ministry of Agriculture):**
+8. **Agricultural Drought & Moisture Stress (PMFBY / Ministry of Agriculture):**
    Vegetation Condition Index (VCI) tracking and farm pond moisture deficit analysis (e.g., Vidarbha, Maharashtra) to prioritize drought relief.
-7. **Dynamic Water Resource Monitoring (Global):**
+9. **Dynamic Water Resource Monitoring (Global):**
    On-demand extraction of lakes, rivers, reservoirs, and coastal lagoons worldwide (e.g., Ramgarh Tal, Dal Lake, Powai Lake) via real-time OpenStreetMap Overpass hydrography.
 
 ---

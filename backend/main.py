@@ -87,7 +87,7 @@ class QueryRequest(BaseModel):
     )
     scenario_id: Optional[str] = Field(
         default=None,
-        description="Optional explicit scenario override: 'flood' | 'urban' | 'water'.",
+        description="Optional explicit scenario override: 'flood' | 'sikkim_flood' | 'joshimath' | 'landslide' | 'manipur_landslide' | 'urban' | 'water' | 'fire' | 'agriculture'.",
     )
     image_path: Optional[str] = Field(
         default=None,

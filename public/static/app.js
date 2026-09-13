@@ -35,8 +35,11 @@
 
   const SCENARIO_COLORS = {
     flood: "#ff1744",
-    earthquake: "#e91e63",
+    sikkim_flood: "#ff1744",
+    joshimath: "#9c27b0",
     landslide: "#ff5722",
+    manipur_landslide: "#ff7043",
+    earthquake: "#e91e63",
     urban: "#ff9100",
     water: "#00e676",
     fire: "#e040fb",
@@ -970,11 +973,32 @@
         { tag: "Peak",      label: "Peak Flood Extent",        date: "Aug 20, 2025" }
       ]
     },
+    sikkim_flood: {
+      steps: [
+        { tag: "GLOF Breach", label: "South Lhonak Moraine Breach", date: "Oct 03, 2023" },
+        { tag: "Dam Surge",   label: "Chungthang Inundation Surge",  date: "Oct 04, 2023" },
+        { tag: "Peak Extent", label: "Teesta Basin Maximum Flood",   date: "Oct 06, 2023" }
+      ]
+    },
+    joshimath: {
+      steps: [
+        { tag: "Baseline",     label: "Pre-Displacement InSAR Stack", date: "Nov 2022" },
+        { tag: "Acceleration", label: "Rapid Subsidence & Cracking",  date: "Jan 03, 2023" },
+        { tag: "Peak Sinking", label: "Critical Displacement Core",   date: "Jan 18, 2023" }
+      ]
+    },
     landslide: {
       steps: [
         { tag: "Pre-Event", label: "Slope Creep & Saturation",  date: "Jul 28, 2024" },
         { tag: "Failure",   label: "Crown Scarp & Debris Surge", date: "Jul 30, 2024" },
         { tag: "Deposit",   label: "Runout & Deposition Fan",    date: "Aug 02, 2024" }
+      ]
+    },
+    manipur_landslide: {
+      steps: [
+        { tag: "Shear Phase",  label: "Initial Slope Instability",    date: "Jun 25, 2023" },
+        { tag: "Failure",      label: "Catastrophic Tupul Collapse",   date: "Jun 29, 2023" },
+        { tag: "Valley Dam",   label: "Barak Channel Blockage & Fan", date: "Jul 05, 2023" }
       ]
     },
     urban: {
