@@ -179,30 +179,53 @@ def submit_query(request: QueryRequest):
                 detail=f"Invalid scenario_id. Must be one of {sorted(SCENARIO_REGISTRY.keys())}.",
             )
 
-        import time
+        # Safety check: if user query specifically targets a different location than the preset template
+        # (e.g. 'Water bodies in gorakhpur' with scenario_id 'water'), do not hijack with the Chilika preset!
+        preset_template = SCENARIO_REGISTRY.get(request.scenario_id, {})
+        preset_region = (preset_template.get("metadata", {}).get("region", "")).lower()
 
-        start = time.perf_counter()
-        geojson = get_scenario_geojson(request.scenario_id)
-        elapsed_ms = round((time.perf_counter() - start) * 1000, 2)
+        loc_token = None
+        try:
+            from backend.dynamic_resolver import extract_location_token
+            loc_token = extract_location_token(query_text)
+        except ImportError:
+            try:
+                from dynamic_resolver import extract_location_token
+                loc_token = extract_location_token(query_text)
+            except ImportError:
+                pass
 
-        # Compute practical scenario confidence as the mean of detected feature confidences
-        features = geojson.get("features", [])
-        if features:
-            conf_scores = [f.get("properties", {}).get("confidence", 0.88) for f in features]
-            calculated_conf = round(sum(conf_scores) / len(conf_scores), 2)
-        else:
-            calculated_conf = 0.88
-
-        return QueryResponse(
-            success=True,
-            mode="calibrated",
-            scenario_id=request.scenario_id,
-            matched_label=request.scenario_id,
-            query_confidence=calculated_conf,
-            processing_time_ms=elapsed_ms,
-            message=f"Preset scenario '{request.scenario_id}' loaded directly from calibrated spatial engine.",
-            geojson=geojson,
+        location_conflict = bool(
+            loc_token
+            and loc_token.lower() not in preset_region
+            and loc_token.lower() not in request.scenario_id.lower()
         )
+
+        if not location_conflict:
+            import time
+
+            start = time.perf_counter()
+            geojson = get_scenario_geojson(request.scenario_id)
+            elapsed_ms = round((time.perf_counter() - start) * 1000, 2)
+
+            # Compute practical scenario confidence as the mean of detected feature confidences
+            features = geojson.get("features", [])
+            if features:
+                conf_scores = [f.get("properties", {}).get("confidence", 0.88) for f in features]
+                calculated_conf = round(sum(conf_scores) / len(conf_scores), 2)
+            else:
+                calculated_conf = 0.88
+
+            return QueryResponse(
+                success=True,
+                mode="calibrated",
+                scenario_id=request.scenario_id,
+                matched_label=request.scenario_id,
+                query_confidence=calculated_conf,
+                processing_time_ms=elapsed_ms,
+                message=f"Preset scenario '{request.scenario_id}' loaded directly from calibrated spatial engine.",
+                geojson=geojson,
+            )
 
     result = engine.run_inference(query_text, image_path=request.image_path)
 

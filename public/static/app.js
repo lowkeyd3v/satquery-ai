@@ -1282,7 +1282,8 @@
     `;
     item.addEventListener("click", () => {
       el.queryInput.value = query;
-      runQuery({ query: query, scenario_id: data.scenario_id });
+      setActivePreset(null);
+      runQuery({ query: query });
     });
     el.historyLog.insertBefore(item, el.historyLog.firstChild);
 
@@ -1310,7 +1311,8 @@
         `;
         item.addEventListener("click", () => {
           el.queryInput.value = entry.query;
-          runQuery({ query: entry.query, scenario_id: entry.scenario_id });
+          setActivePreset(null);
+          runQuery({ query: entry.query });
         });
         el.historyLog.appendChild(item);
       });
