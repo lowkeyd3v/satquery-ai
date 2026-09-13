@@ -965,11 +965,8 @@
     const agenticTraceHtml = `
       <div class="agentic-trace-wrap collapsed" id="agenticTraceWrap">
         <div class="agentic-trace-header" id="agenticTraceHeader" title="Click to collapse / expand execution trace">
-          <div class="agentic-title-group">
-            <span class="agentic-pulse-dot"></span>
-            <span class="agentic-title-text">Execution Trace</span>
-            <span class="agentic-steps-badge">4/4 Steps</span>
-          </div>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span class="agentic-title-text">Execution Trace (4 Steps)</span>
           <span class="agentic-toggle-icon">▼</span>
         </div>
         <div class="agentic-timeline">

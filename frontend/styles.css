@@ -738,7 +738,7 @@ html, body {
 
 /* ─── Agentic Execution Trace Accordion ──────────────────────── */
 .agentic-trace-wrap {
-  margin-top: 10px;
+  margin-top: 8px;
   background: var(--bg-3);
   border: 1px solid var(--border-2);
   border-radius: var(--r-md);
@@ -754,6 +754,7 @@ html, body {
 
 .agentic-trace-wrap.collapsed:hover {
   background: var(--cyan-dim);
+  border-color: var(--cyan);
   box-shadow: 0 4px 14px rgba(34, 211, 238, 0.15);
   transform: translateY(-1px);
 }
@@ -764,65 +765,35 @@ html, body {
 }
 
 .agentic-trace-header {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
   padding: 8px 12px;
   min-height: 35px;
   box-sizing: border-box;
   background: transparent;
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.15s ease;
-}
-
-.agentic-title-group {
-  display: flex;
-  align-items: center;
-  gap: 7px;
+  color: var(--cyan);
+  font-family: var(--sans);
   font-size: 11px;
   font-weight: 500;
-  color: var(--text-0);
-  white-space: nowrap;
-  min-width: 0;
-  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.agentic-trace-header svg {
+  flex-shrink: 0;
+  stroke: var(--cyan);
 }
 
 .agentic-title-text {
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex-shrink: 0;
-}
-
-.agentic-pulse-dot {
-  width: 6.5px;
-  height: 6.5px;
-  border-radius: 50%;
-  background: var(--cyan);
-  box-shadow: 0 0 6px var(--cyan);
-  flex-shrink: 0;
-  will-change: opacity, transform;
-  animation: pulseCyan 2s infinite ease-in-out;
-}
-
-@keyframes pulseCyan {
-  0%, 100% { opacity: 0.4; transform: scale(0.85); }
-  50% { opacity: 1; transform: scale(1.15); }
-}
-
-.agentic-steps-badge {
-  font-family: var(--mono);
-  font-size: 9px;
-  font-weight: 500;
-  padding: 2px 6px;
-  border-radius: var(--r-sm);
-  background: rgba(34, 211, 238, 0.12);
   color: var(--cyan);
-  border: 1px solid rgba(34, 211, 238, 0.25);
-  white-space: nowrap;
-  flex-shrink: 0;
-  line-height: 1;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .agentic-toggle-icon {
@@ -830,7 +801,7 @@ html, body {
   color: var(--cyan);
   opacity: 0.85;
   flex-shrink: 0;
-  margin-left: 6px;
+  margin-left: 2px;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
