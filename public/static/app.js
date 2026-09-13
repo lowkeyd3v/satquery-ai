@@ -964,10 +964,10 @@
 
     const agenticTraceHtml = `
       <div class="agentic-trace-wrap collapsed" id="agenticTraceWrap">
-        <div class="agentic-trace-header" id="agenticTraceHeader" title="Click to collapse / expand agentic execution trace">
+        <div class="agentic-trace-header" id="agenticTraceHeader" title="Click to collapse / expand execution trace">
           <div class="agentic-title-group">
             <span class="agentic-pulse-dot"></span>
-            <span class="agentic-title-text">⚡ Agentic Execution Trace</span>
+            <span class="agentic-title-text">Execution Trace</span>
             <span class="agentic-steps-badge">4/4 Steps</span>
           </div>
           <span class="agentic-toggle-icon">▼</span>
