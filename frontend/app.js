@@ -115,6 +115,12 @@
   const map = L.map("map", {
     zoomControl: false,
     attributionControl: true,
+    preferCanvas: true,             // Hardware-accelerated GPU 2D canvas for all vector polygons
+    zoomAnimation: true,
+    fadeAnimation: true,
+    markerZoomAnimation: true,
+    updateWhenZooming: false,       // Prevents micro-stutters during zoom transitions
+    updateWhenIdle: true,
   }).setView(INDIA_CENTER, INDIA_ZOOM);
 
   L.control.zoom({ position: "bottomright" }).addTo(map);
@@ -127,6 +133,9 @@
       attribution:
         "Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, ISRO/NRSC",
       maxZoom: 19,
+      keepBuffer: 4,               // Pre-buffers neighboring tiles in RAM for lag-free panning
+      updateWhenZooming: false,
+      updateWhenIdle: true,
     }
   );
   satelliteLayer.addTo(map);
@@ -140,6 +149,9 @@
       maxZoom: 19,
       opacity: 0.85,
       zIndex: 500,
+      keepBuffer: 4,
+      updateWhenZooming: false,
+      updateWhenIdle: true,
     }
   );
   referenceLayer.addTo(map);
@@ -169,6 +181,9 @@
       maxZoom: 19,
       opacity: 0.95,
       zIndex: 200,
+      keepBuffer: 3,
+      updateWhenZooming: false,
+      updateWhenIdle: true,
     }
   );
 
