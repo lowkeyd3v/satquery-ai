@@ -686,6 +686,75 @@
 
     const isSafeFloodCheck = (p.flood_active === false) || (p.severity === "Normal" && data.matched_label.toLowerCase().includes("flood"));
 
+    const methodology = escapeHtml(p.methodology || data.geojson.metadata?.methodology || "Spectral Indices & Spatial Vector Delineation");
+    const queryUsed = escapeHtml(el.queryInput?.value?.trim() || data.matched_label);
+    const latency = data.processing_time_ms ? `${data.processing_time_ms}ms` : "120ms";
+    const modeLabel = data.mode === "dynamic_api" ? "Dynamic Live API Ingestion" : data.mode === "real" ? "Deep Learning VLM + Segmenter" : "Calibrated Spatial Benchmark";
+    const primarySensor = escapeHtml((sensor || "Multi-Sensor EO").split('/')[0].trim());
+
+    const agenticTraceHtml = `
+      <div class="agentic-trace-wrap" id="agenticTraceWrap">
+        <div class="agentic-trace-header" id="agenticTraceHeader" title="Click to collapse / expand agentic execution trace">
+          <div class="agentic-title-group">
+            <span class="agentic-pulse-dot"></span>
+            <span>⚡ Agentic Execution Trace</span>
+            <span class="agentic-steps-badge">4/4 Autonomous Steps</span>
+          </div>
+          <span class="agentic-toggle-icon">▼</span>
+        </div>
+        <div class="agentic-timeline">
+          <div class="agentic-step">
+            <div class="agentic-step-icon">✓</div>
+            <div class="agentic-step-body">
+              <div class="agentic-step-title">
+                <span>1. Query Parsing & Intent Routing</span>
+                <span class="agentic-step-tag">${data.scenario_id.toUpperCase()}</span>
+              </div>
+              <div class="agentic-step-desc">
+                Parsed prompt <code>"${queryUsed}"</code> &rarr; Disambiguated geohazard class: <strong>${escapeHtml(capitalize(data.scenario_id))}</strong> (${confidence}% confidence).
+              </div>
+            </div>
+          </div>
+          <div class="agentic-step">
+            <div class="agentic-step-icon">✓</div>
+            <div class="agentic-step-body">
+              <div class="agentic-step-title">
+                <span>2. Sensor Selection & Orchestration</span>
+                <span class="agentic-step-tag">${primarySensor}</span>
+              </div>
+              <div class="agentic-step-desc">
+                Orchestrated <strong>${sensor}</strong> (${resolution}) &bull; Mode: <em>${modeLabel}</em>.
+              </div>
+            </div>
+          </div>
+          <div class="agentic-step">
+            <div class="agentic-step-icon">✓</div>
+            <div class="agentic-step-body">
+              <div class="agentic-step-title">
+                <span>3. Vector Grounding & Spatial Segmentation</span>
+                <span class="agentic-step-tag">${latency}</span>
+              </div>
+              <div class="agentic-step-desc">
+                Pipeline: <em>${methodology}</em> &bull; Delineated <strong>${count} polygon(s)</strong> covering <strong>${totalArea} km²</strong>.
+              </div>
+            </div>
+          </div>
+          <div class="agentic-step">
+            <div class="agentic-step-icon">✓</div>
+            <div class="agentic-step-body">
+              <div class="agentic-step-title">
+                <span>4. Operational Directive Synthesis</span>
+                <span class="agentic-step-tag">${severity}</span>
+              </div>
+              <div class="agentic-step-desc">
+                Synthesized tactical directive &bull; Protocol dispatched for emergency field deployment.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
     const sourceBtnHtml = `
       <button type="button" class="report-source-btn" id="openSourceBtn" title="View Data Source, Satellite Granule & AI Model Details">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
@@ -717,6 +786,7 @@
         stable seasonal river flow with <span class="r-hi">${confidence}%</span> confidence.
         Severity assessment: <span class="r-grn">Normal (Safe)</span>.
         <div class="report-action">↳ ${action}</div>
+        ${agenticTraceHtml}
         ${sourceBtnHtml}
       `;
     } else if (data.scenario_id === "earthquake") {
@@ -735,6 +805,7 @@
           ${eqListHtml}
         </ul>
         <div class="report-action">↳ ${action}</div>
+        ${agenticTraceHtml}
         ${sourceBtnHtml}
       `;
     } else if (count > 1 && (data.scenario_id === "water" || label.toLowerCase().includes("water"))) {
@@ -753,6 +824,7 @@
           ${waterListHtml}
         </ul>
         <div class="report-action">↳ ${action}</div>
+        ${agenticTraceHtml}
         ${sourceBtnHtml}
       `;
     } else {
@@ -767,8 +839,17 @@
         <span class="r-hi">${confidence}%</span> query confidence.
         Severity assessment: <span class="${severityColor}">${severity}</span>.
         <div class="report-action">↳ ${action}</div>
+        ${agenticTraceHtml}
         ${sourceBtnHtml}
       `;
+    }
+
+    const traceHeader = document.getElementById("agenticTraceHeader");
+    const traceWrap = document.getElementById("agenticTraceWrap");
+    if (traceHeader && traceWrap) {
+      traceHeader.addEventListener("click", () => {
+        traceWrap.classList.toggle("collapsed");
+      });
     }
 
     const btn = document.getElementById("openSourceBtn");

@@ -666,6 +666,153 @@ html, body {
   stroke: var(--cyan);
 }
 
+/* ─── Agentic Execution Trace Accordion ──────────────────────── */
+.agentic-trace-wrap {
+  margin-top: 12px;
+  background: var(--bg-1);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.agentic-trace-wrap:hover {
+  border-color: var(--cyan);
+}
+
+.agentic-trace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--bg-2);
+  cursor: pointer;
+  user-select: none;
+}
+
+.agentic-title-group {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-0);
+}
+
+.agentic-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+  animation: pulseCyan 2s infinite ease-in-out;
+}
+
+@keyframes pulseCyan {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.15); box-shadow: 0 0 10px var(--cyan); }
+}
+
+.agentic-steps-badge {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  padding: 1px 6px;
+  border-radius: var(--r-sm);
+  background: rgba(34, 211, 238, 0.12);
+  color: var(--cyan);
+  border: 1px solid rgba(34, 211, 238, 0.25);
+}
+
+.agentic-toggle-icon {
+  font-size: 10px;
+  color: var(--text-2);
+  transition: transform 0.2s ease;
+}
+
+.agentic-trace-wrap.collapsed .agentic-toggle-icon {
+  transform: rotate(-90deg);
+}
+
+.agentic-trace-wrap.collapsed .agentic-timeline {
+  display: none;
+}
+
+.agentic-timeline {
+  padding: 10px 10px 6px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.agentic-step {
+  display: flex;
+  gap: 9px;
+  position: relative;
+}
+
+.agentic-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 18px;
+  bottom: -10px;
+  width: 1px;
+  background: var(--border-2);
+}
+
+.agentic-step-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(34, 211, 238, 0.15);
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.agentic-step-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.agentic-step-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.agentic-step-tag {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  color: var(--text-2);
+  text-transform: uppercase;
+}
+
+.agentic-step-desc {
+  font-size: 10.5px;
+  color: var(--text-2);
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+.agentic-step-desc code {
+  background: var(--bg-3);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--text-1);
+}
+
 /* ================= DATA SOURCE & MODEL DETAILS MODAL ================= */
 .modal-backdrop {
   position: fixed;
