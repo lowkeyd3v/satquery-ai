@@ -15,7 +15,10 @@ from __future__ import annotations
 
 import os
 import sys
+import uuid
+import shutil
 import logging
+import tempfile
 from pathlib import Path
 from typing import Optional
 
@@ -26,13 +29,23 @@ from typing import Optional
 # from inside the backend/ directory itself.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from inference import engine
+
+# Temp directory for uploaded satellite tiles (cleaned up per-request)
+_UPLOAD_TEMP_DIR = Path(tempfile.gettempdir()) / "satquery_uploads"
+_UPLOAD_TEMP_DIR.mkdir(parents=True, exist_ok=True)
+
+# Allowed image MIME types judges may upload
+_ALLOWED_MIME = {
+    "image/png", "image/jpeg", "image/tiff", "image/geotiff",
+    "image/x-tiff", "image/jpg", "application/octet-stream",
+}
 
 logger = logging.getLogger("satquery.main")
 logging.basicConfig(level=logging.INFO)
@@ -203,6 +216,77 @@ def submit_query(request: QueryRequest):
         message=result.message,
         geojson=result.geojson,
     )
+
+
+@app.post("/api/v1/upload-query", response_model=QueryResponse, tags=["inference"])
+async def upload_and_query(
+    query: str = Form(..., min_length=1, max_length=500,
+                      description="Natural language query about the uploaded satellite tile."),
+    file: UploadFile = File(..., description="Satellite image tile — PNG, JPEG, or GeoTIFF."),
+):
+    """
+    Upload a satellite image tile and run a natural-language query against it.
+
+    Accepts ``multipart/form-data`` with two fields:
+
+    * **query** – plain English, e.g. *"Detect flooded regions"*
+    * **file**  – a raster image (PNG / JPEG / GeoTIFF)
+
+    The image is saved to a temporary file, passed to the SatQueryEngine
+    (real VLM pipeline when ``SATQUERY_REAL_MODE=1``, otherwise the
+    calibrated spatial engine), and deleted immediately after inference.
+    """
+    # ── Validate file type ──────────────────────────────────────────
+    content_type = (file.content_type or "").lower()
+    filename_lower = (file.filename or "").lower()
+    is_image_ext = any(filename_lower.endswith(ext)
+                       for ext in (".png", ".jpg", ".jpeg", ".tif", ".tiff"))
+    if content_type not in _ALLOWED_MIME and not is_image_ext:
+        raise HTTPException(
+            status_code=415,
+            detail=(
+                f"Unsupported file type '{file.content_type}'. "
+                "Please upload a PNG, JPEG, or GeoTIFF satellite image."
+            ),
+        )
+
+    # ── Validate file size (max 50 MB for demo) ─────────────────────
+    MAX_BYTES = 50 * 1024 * 1024  # 50 MB
+    contents = await file.read()
+    if len(contents) > MAX_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large ({len(contents) // (1024*1024)} MB). Maximum is 50 MB.",
+        )
+
+    # ── Save to temp file ───────────────────────────────────────────
+    suffix = Path(file.filename or "upload.png").suffix or ".png"
+    tmp_path = _UPLOAD_TEMP_DIR / f"{uuid.uuid4().hex}{suffix}"
+    try:
+        tmp_path.write_bytes(contents)
+        logger.info("Saved uploaded tile to %s (%d bytes)", tmp_path, len(contents))
+
+        # ── Run inference ───────────────────────────────────────────
+        query_text = query.strip()
+        result = engine.run_inference(query_text, image_path=str(tmp_path))
+
+        return QueryResponse(
+            success=True,
+            mode=result.mode,
+            scenario_id=result.scenario_id,
+            matched_label=result.matched_label,
+            query_confidence=result.query_confidence,
+            processing_time_ms=result.processing_time_ms,
+            message=f"[Image Upload] {result.message}",
+            geojson=result.geojson,
+        )
+
+    finally:
+        # Always clean up the temp file, even on error
+        try:
+            tmp_path.unlink(missing_ok=True)
+        except Exception:
+            pass
 
 
 @app.get("/api/v1/temporal/{scenario_id}", tags=["temporal"])
