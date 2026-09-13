@@ -27,9 +27,10 @@
   }
 
   const ENDPOINTS = {
-    get scenarios() { return `${API_BASE}/api/v1/scenarios`; },
-    get query()     { return `${API_BASE}/api/v1/query`; },
-    get health()    { return `${API_BASE}/api/v1/health`; },
+    get scenarios()    { return `${API_BASE}/api/v1/scenarios`; },
+    get query()        { return `${API_BASE}/api/v1/query`; },
+    get health()       { return `${API_BASE}/api/v1/health`; },
+    get uploadQuery()  { return `${API_BASE}/api/v1/upload-query`; },
   };
 
   const SCENARIO_COLORS = {
@@ -48,6 +49,9 @@
 
   let lastQueryResult = null;
   let activeGeoJsonLayer = null;
+
+  // Uploaded image file (File object or null)
+  let uploadedFile = null;
 
   // Temporal playback state
   let temporalSnapshots = null;
@@ -85,6 +89,15 @@
     sourceModal: document.getElementById("sourceModal"),
     modalCloseBtn: document.getElementById("modalCloseBtn"),
     modalBody: document.getElementById("modalBody"),
+    // Upload zone
+    uploadZone: document.getElementById("uploadZone"),
+    uploadFileInput: document.getElementById("uploadFileInput"),
+    uploadIdle: document.getElementById("uploadIdle"),
+    uploadPreview: document.getElementById("uploadPreview"),
+    uploadThumb: document.getElementById("uploadThumb"),
+    uploadFilename: document.getElementById("uploadFilename"),
+    uploadFilesize: document.getElementById("uploadFilesize"),
+    uploadClearBtn: document.getElementById("uploadClearBtn"),
   };
 
   // ------------------------------------------------------------------
@@ -198,6 +211,128 @@
   }
 
   // ------------------------------------------------------------------
+  // Image Upload Zone — drag-drop, preview, clear
+  // ------------------------------------------------------------------
+  function formatBytes(bytes) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  function setUploadedFile(file) {
+    if (!file) {
+      uploadedFile = null;
+      el.uploadPreview.style.display = "none";
+      el.uploadIdle.style.display = "flex";
+      el.uploadThumb.src = "";
+      el.submitBtn.classList.remove("has-image");
+      return;
+    }
+
+    // Validate type
+    const validExts = [".png", ".jpg", ".jpeg", ".tif", ".tiff"];
+    const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+    if (!validExts.includes(ext)) {
+      showToast("Unsupported file type. Use PNG, JPEG, or GeoTIFF.", true);
+      return;
+    }
+
+    // Validate size (50 MB)
+    if (file.size > 50 * 1024 * 1024) {
+      showToast(`File too large (${formatBytes(file.size)}). Max 50 MB.`, true);
+      return;
+    }
+
+    uploadedFile = file;
+
+    // Show thumbnail preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      el.uploadThumb.src = e.target.result;
+      el.uploadPreview.style.display = "flex";
+      el.uploadIdle.style.display = "none";
+      el.uploadFilename.textContent = file.name;
+      el.uploadFilesize.textContent = formatBytes(file.size);
+      el.submitBtn.classList.add("has-image");
+
+      // Auto-suggest query if textarea is blank
+      if (!el.queryInput.value.trim()) {
+        el.queryInput.value = "Analyze this satellite image and detect any significant features";
+      }
+      showToast(`Image loaded: ${file.name}`);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function initUploadZone() {
+    if (!el.uploadZone) return;
+
+    // Click to open file picker
+    el.uploadZone.addEventListener("click", (e) => {
+      if (e.target === el.uploadClearBtn) return;
+      el.uploadFileInput.click();
+    });
+
+    // File input change
+    el.uploadFileInput.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (file) setUploadedFile(file);
+      e.target.value = ""; // reset so same file can be re-picked
+    });
+
+    // Clear button
+    el.uploadClearBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setUploadedFile(null);
+    });
+
+    // Drag-drop
+    el.uploadZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      el.uploadZone.classList.add("drag-over");
+    });
+
+    el.uploadZone.addEventListener("dragleave", (e) => {
+      if (!el.uploadZone.contains(e.relatedTarget)) {
+        el.uploadZone.classList.remove("drag-over");
+      }
+    });
+
+    el.uploadZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      el.uploadZone.classList.remove("drag-over");
+      const file = e.dataTransfer?.files?.[0];
+      if (file) setUploadedFile(file);
+    });
+  }
+
+  // ------------------------------------------------------------------
+  // Upload + Query — sends multipart/form-data to /api/v1/upload-query
+  // ------------------------------------------------------------------
+  async function runUploadQuery(queryText) {
+    const formData = new FormData();
+    formData.append("query", queryText);
+    formData.append("file", uploadedFile, uploadedFile.name);
+
+    let res;
+    try {
+      res = await fetch(ENDPOINTS.uploadQuery, { method: "POST", body: formData });
+    } catch (netErr) {
+      // Fallback to Vercel
+      res = await fetch(
+        `https://satquery-ai-sage.vercel.app/api/v1/upload-query`,
+        { method: "POST", body: formData }
+      );
+    }
+
+    if (!res || !res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.detail || `HTTP ${res.status}`);
+    }
+    return res.json();
+  }
+
+  // ------------------------------------------------------------------
   // Fetch and render preset scenario buttons
   // ------------------------------------------------------------------
   async function loadPresets() {
@@ -262,42 +397,44 @@
       return;
     }
 
-    setBusy(true);
-    setStatus("busy", "Running spatial segmentation…");
-    el.metricStatus.textContent = "Segmenting…";
+    const isUploadMode = Boolean(uploadedFile && !scenario_id);
+    setBusy(true, isUploadMode);
+    setStatus("busy", isUploadMode ? "Analyzing uploaded tile…" : "Running spatial segmentation…");
+    el.metricStatus.textContent = isUploadMode ? "Processing image…" : "Segmenting…";
 
     try {
-      let res;
-      try {
-        res = await fetch(ENDPOINTS.query, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            query: query.trim(),
-            scenario_id: scenario_id,
-          }),
-        });
-      } catch (netErr) {
-        if (API_BASE !== "https://satquery-ai-sage.vercel.app") {
-          res = await fetch(`https://satquery-ai-sage.vercel.app/api/v1/query`, {
+      let data;
+
+      if (isUploadMode) {
+        // ── Image Upload Mode: POST multipart/form-data ─────────────
+        data = await runUploadQuery(query.trim());
+      } else {
+        // ── Standard JSON Mode: POST application/json ───────────────
+        let res;
+        try {
+          res = await fetch(ENDPOINTS.query, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              query: query.trim(),
-              scenario_id: scenario_id,
-            }),
+            body: JSON.stringify({ query: query.trim(), scenario_id }),
           });
-        } else {
-          throw netErr;
+        } catch (netErr) {
+          if (API_BASE !== "https://satquery-ai-sage.vercel.app") {
+            res = await fetch(`https://satquery-ai-sage.vercel.app/api/v1/query`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ query: query.trim(), scenario_id }),
+            });
+          } else {
+            throw netErr;
+          }
         }
+        if (!res || !res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          throw new Error(errBody.detail || `HTTP ${res.status}`);
+        }
+        data = await res.json();
       }
 
-      if (!res || !res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        throw new Error(errBody.detail || `HTTP ${res.status}`);
-      }
-
-      const data = await res.json();
       lastQueryResult = data;
       handleQueryResponse(query, data);
 
@@ -329,15 +466,18 @@
       el.metricStatus.textContent = "Error";
       hideTemporalBar();
     } finally {
-      setBusy(false);
+      setBusy(false, false);
     }
   }
 
-  function setBusy(isBusy) {
+  function setBusy(isBusy, isUploadMode = false) {
     el.submitBtn.disabled = isBusy;
-    el.submitBtn.querySelector("span").textContent = isBusy
-      ? "Analyzing Imagery…"
-      : "Run Analysis";
+    const span = el.submitBtn.querySelector("span");
+    if (!isBusy) {
+      span.textContent = "Run Analysis";
+    } else {
+      span.textContent = isUploadMode ? "Analyzing Tile…" : "Analyzing Imagery…";
+    }
   }
 
   // ------------------------------------------------------------------
@@ -1202,6 +1342,7 @@
   applyTheme(getPreferredTheme());
   setStatus("busy", "Connecting to inference engine…");
   loadHistoryFromStorage();
+  initUploadZone();
   loadPresets();
   hideTemporalBar();
 })();
