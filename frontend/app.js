@@ -978,7 +978,7 @@
             <div class="agentic-step-body">
               <div class="agentic-step-title">
                 <span>1. Query Parsing & Intent Routing</span>
-                <span class="agentic-step-tag">${data.scenario_id.toUpperCase()}</span>
+                <span class="agentic-step-tag">${escapeHtml(data.scenario_id.toUpperCase())}</span>
               </div>
               <div class="agentic-step-desc">
                 Parsed prompt <code>"${queryUsed}"</code> &rarr; Disambiguated geohazard class: <strong>${escapeHtml(capitalize(data.scenario_id))}</strong> (${confidence}% confidence).
@@ -1274,11 +1274,11 @@
     const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     item.innerHTML = `
       <span class="h-query">${escapeHtml(query)}</span>
-      <span class="h-meta">${time} &middot; ${capitalize(
+      <span class="h-meta">${time} &middot; ${escapeHtml(capitalize(
       data.matched_label
-    )} &middot; ${Math.round(data.query_confidence * 100)}% &middot; ${
+    ))} &middot; ${Math.round(data.query_confidence * 100)}% &middot; ${escapeHtml(
       data.mode.toUpperCase()
-    }</span>
+    )}</span>
     `;
     item.addEventListener("click", () => {
       el.queryInput.value = query;
@@ -1307,7 +1307,7 @@
         item.style.borderLeftColor = SCENARIO_COLORS[entry.scenario_id] || SCENARIO_COLORS.unknown;
         item.innerHTML = `
           <span class="h-query">${escapeHtml(entry.query)}</span>
-          <span class="h-meta">${entry.time} &middot; ${capitalize(entry.matched_label)} &middot; ${Math.round(entry.confidence * 100)}% &middot; ${entry.mode.toUpperCase()}</span>
+          <span class="h-meta">${entry.time} &middot; ${escapeHtml(capitalize(entry.matched_label))} &middot; ${Math.round(entry.confidence * 100)}% &middot; ${escapeHtml(entry.mode.toUpperCase())}</span>
         `;
         item.addEventListener("click", () => {
           el.queryInput.value = entry.query;
