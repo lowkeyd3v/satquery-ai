@@ -640,8 +640,10 @@ html, body {
   justify-content: center;
   gap: 7px;
   width: 100%;
-  margin-top: 12px;
+  margin-top: 8px;
   padding: 8px 12px;
+  min-height: 35px;
+  box-sizing: border-box;
   background: var(--bg-3);
   border: 1px solid var(--border-2);
   border-radius: var(--r-md);
@@ -672,26 +674,42 @@ html, body {
 
 /* ─── Agentic Execution Trace Accordion ──────────────────────── */
 .agentic-trace-wrap {
-  margin-top: 12px;
-  background: var(--bg-1);
+  margin-top: 10px;
+  background: var(--bg-3);
   border: 1px solid var(--border-2);
   border-radius: var(--r-md);
   overflow: hidden;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .agentic-trace-wrap:hover {
   border-color: var(--cyan);
 }
 
+.agentic-trace-wrap.collapsed:hover {
+  background: var(--cyan-dim);
+  box-shadow: 0 4px 14px rgba(34, 211, 238, 0.15);
+  transform: translateY(-1px);
+}
+
+.agentic-trace-wrap:not(.collapsed) .agentic-trace-header {
+  border-bottom: 1px solid var(--border-1);
+  background: var(--bg-2);
+}
+
 .agentic-trace-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px;
-  background: var(--bg-2);
+  padding: 8px 12px;
+  min-height: 35px;
+  box-sizing: border-box;
+  background: transparent;
   cursor: pointer;
   user-select: none;
+  transition: background 0.15s ease;
 }
 
 .agentic-title-group {
@@ -699,16 +717,26 @@ html, body {
   align-items: center;
   gap: 7px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-0);
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.agentic-title-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .agentic-pulse-dot {
-  width: 7px;
-  height: 7px;
+  width: 6.5px;
+  height: 6.5px;
   border-radius: 50%;
   background: var(--cyan);
   box-shadow: 0 0 6px var(--cyan);
+  flex-shrink: 0;
   will-change: opacity, transform;
   animation: pulseCyan 2s infinite ease-in-out;
 }
@@ -720,18 +748,25 @@ html, body {
 
 .agentic-steps-badge {
   font-family: var(--mono);
-  font-size: 9.5px;
-  padding: 1px 6px;
+  font-size: 9px;
+  font-weight: 500;
+  padding: 2px 6px;
   border-radius: var(--r-sm);
   background: rgba(34, 211, 238, 0.12);
   color: var(--cyan);
   border: 1px solid rgba(34, 211, 238, 0.25);
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .agentic-toggle-icon {
-  font-size: 10px;
-  color: var(--text-2);
-  transition: transform 0.2s ease;
+  font-size: 9px;
+  color: var(--cyan);
+  opacity: 0.85;
+  flex-shrink: 0;
+  margin-left: 6px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .agentic-trace-wrap.collapsed .agentic-toggle-icon {
